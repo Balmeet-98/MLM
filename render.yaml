@@ -1,0 +1,41 @@
+services:
+  # ── Backend API (Web Service) ──────────────────────────────────────────────
+  - type: web
+    name: samriddhi-network-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Set the following in Render Dashboard → Environment (sync: false means manual entry)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false   # e.g. https://samriddhi-network.onrender.com
+
+  # ── Frontend Static Site ───────────────────────────────────────────────────
+  - type: web
+    name: samriddhi-network
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Set this to your backend Web Service URL after it is deployed
+      - key: VITE_API_URL
+        sync: false   # e.g. https://samriddhi-network-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
