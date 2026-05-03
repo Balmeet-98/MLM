@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 const errorHandler = require('./src/middleware/errorHandler');
 const { startCronJobs } = require('./src/utils/cronJobs');
 
@@ -13,12 +14,15 @@ const installmentRoutes = require('./src/routes/installments');
 const productRoutes = require('./src/routes/products');
 const rewardRoutes = require('./src/routes/rewards');
 const adminRoutes = require('./src/routes/admin');
+const paymentRoutes = require('./src/routes/payments');
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
+
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: isProduction ? true : (process.env.FRONTEND_URL || 'http://localhost:5173'),
   credentials: true,
 }));
 app.use(express.json());
@@ -26,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => res.json({ status: 'ok', app: 'Samriddhi Network API' }));
 
+app.use('/api/payments', paymentRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/tree', treeRoutes);
@@ -34,6 +39,15 @@ app.use('/api/installments', installmentRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Serve React frontend in production (single-service deployment)
+if (isProduction) {
+  const frontendDist = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 app.use(errorHandler);
 

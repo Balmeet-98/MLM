@@ -228,6 +228,20 @@ CREATE TABLE IF NOT EXISTS withdrawals (
 );
 
 -- ============================================================
+-- PAYMENTS (Razorpay — activation fee / Month 1 installment)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  razorpay_order_id VARCHAR(100) NOT NULL UNIQUE,
+  razorpay_payment_id VARCHAR(100) UNIQUE,
+  razorpay_signature VARCHAR(300),
+  amount DECIMAL(10,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'captured', 'failed')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_users_sponsor_id ON users(sponsor_id);
