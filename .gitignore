@@ -44,3 +44,5 @@ desktop.ini
 .cache/
 .temp/
 tmp/
+temp_auto_push.bat
+temp_interactive_push.bat
