@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const supabase = require('../config/supabase');
 const { signToken } = require('../utils/jwt');
-const { placeInTree } = require('../services/binaryTreeService');
+const { placeInTree, createRootNode, walkParentChain } = require('../services/treeService');
 const { creditDirectIncome, updatePairsAndCredit } = require('../services/incomeService');
 const { createInstallmentSchedule } = require('../services/installmentService');
 const { checkAndAssignRanks } = require('../services/rewardService');
@@ -35,7 +35,7 @@ const register = async (req, res, next) => {
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const {
-      name, email, password, phone, sponsorCode, position,
+      name, email, password, phone, sponsorCode,
       razorpay_payment_id, razorpay_order_id, razorpay_signature,
     } = req.body;
 
@@ -111,7 +111,6 @@ const register = async (req, res, next) => {
         phone,
         referral_code: referralCode,
         sponsor_id: sponsorId,
-        position: position || 'left',
         group_id: groupId,
         is_active: true,
       })
@@ -133,11 +132,11 @@ const register = async (req, res, next) => {
     // Create wallet
     await supabase.from('wallets').insert({ user_id: newUser.id, balance: 0 });
 
-    // Place in binary tree
+    // Place in network tree
     if (sponsorId) {
-      await placeInTree(newUser.id, sponsorId, position || 'left');
+      await placeInTree(newUser.id, sponsorId);
     } else {
-      await supabase.from('binary_tree').insert({ user_id: newUser.id });
+      await createRootNode(newUser.id);
     }
 
     // Create 16-month installment schedule and mark Month 1 as paid
@@ -159,26 +158,10 @@ const register = async (req, res, next) => {
     await creditDirectIncome(newUser.id);
 
     // Update pair counts up the tree
-    if (sponsorId) {
-      const { data: treeNode } = await supabase
-        .from('binary_tree')
-        .select('parent_id')
-        .eq('user_id', newUser.id)
-        .single();
-
-      if (treeNode?.parent_id) {
-        let currentParent = treeNode.parent_id;
-        for (let i = 0; i < 10 && currentParent; i++) {
-          await updatePairsAndCredit(currentParent);
-          await checkAndAssignRanks(currentParent);
-          const { data: parentNode } = await supabase
-            .from('binary_tree')
-            .select('parent_id')
-            .eq('user_id', currentParent)
-            .single();
-          currentParent = parentNode?.parent_id;
-        }
-      }
+    const parentChain = await walkParentChain(newUser.id);
+    for (const parentId of parentChain) {
+      await updatePairsAndCredit(parentId);
+      await checkAndAssignRanks(parentId);
     }
 
     const token = signToken({ id: newUser.id, role: newUser.role });

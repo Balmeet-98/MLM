@@ -123,7 +123,7 @@ MLM/
 ### Auth
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | /api/auth/register | Register with sponsor code + position |
+| POST | /api/auth/register | Register with sponsor code |
 | POST | /api/auth/login | Login, returns JWT |
 | GET | /api/auth/me | Get current user |
 
@@ -192,7 +192,7 @@ MLM/
 ## Database Schema
 
 15 tables in Supabase PostgreSQL:
-`users`, `groups`, `binary_tree`, `wallets`, `products`, `user_products`,
+`users`, `groups`, `tree_nodes`, `tree_edges`, `wallets`, `products`, `user_products`,
 `transactions`, `income_logs`, `pairs`, `installments`, `reward_catalog`,
 `lucky_draws`, `ranks`, `user_ranks`, `user_rewards`, `withdrawals`
 

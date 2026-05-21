@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(20),
   referral_code VARCHAR(20) UNIQUE NOT NULL,
   sponsor_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  position VARCHAR(10) CHECK (position IN ('left', 'right')),
+  position VARCHAR(10),
   role VARCHAR(10) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   is_active BOOLEAN DEFAULT TRUE,
   id_proof_url VARCHAR(500),
@@ -40,15 +40,19 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ============================================================
--- 3. BINARY TREE
+-- 3. NETWORK TREE (N-ary — unlimited children per node)
 -- ============================================================
-CREATE TABLE IF NOT EXISTS binary_tree (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS tree_nodes (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   parent_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  left_child_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  right_child_id UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tree_edges (
+  parent_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  child_user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (parent_user_id, child_user_id)
 );
 
 -- ============================================================
@@ -121,6 +125,8 @@ CREATE TABLE IF NOT EXISTS pairs (
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   left_count INTEGER DEFAULT 0,
   right_count INTEGER DEFAULT 0,
+  active_leg_count INTEGER DEFAULT 0,
+  leg_counts JSONB DEFAULT '[]',
   total_pairs INTEGER DEFAULT 0,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -246,7 +252,8 @@ CREATE TABLE IF NOT EXISTS payments (
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_users_sponsor_id ON users(sponsor_id);
 CREATE INDEX IF NOT EXISTS idx_users_group_id ON users(group_id);
-CREATE INDEX IF NOT EXISTS idx_binary_tree_parent ON binary_tree(parent_id);
+CREATE INDEX IF NOT EXISTS idx_tree_nodes_parent ON tree_nodes(parent_id);
+CREATE INDEX IF NOT EXISTS idx_tree_edges_parent ON tree_edges(parent_user_id);
 CREATE INDEX IF NOT EXISTS idx_income_logs_user ON income_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_installments_user ON installments(user_id);

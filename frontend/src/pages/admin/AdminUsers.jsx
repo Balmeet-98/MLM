@@ -64,7 +64,6 @@ export default function AdminUsers() {
                 <tr>
                   <th>Member</th>
                   <th>Ref Code</th>
-                  <th>Position</th>
                   <th>Status</th>
                   <th>Missed</th>
                   <th>Joined</th>
@@ -73,7 +72,7 @@ export default function AdminUsers() {
               </thead>
               <tbody>
                 {users.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-10 text-slate-400">No users found</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10 text-slate-400">No users found</td></tr>
                 ) : users.map(user => (
                   <tr key={user.id}>
                     <td>
@@ -88,7 +87,6 @@ export default function AdminUsers() {
                       </div>
                     </td>
                     <td><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">{user.referral_code}</span></td>
-                    <td className="capitalize text-slate-600">{user.position || '—'}</td>
                     <td>
                       <span className={`badge ${user.is_active ? 'badge-green' : 'badge-red'}`}>
                         {user.is_active ? 'Active' : 'Inactive'}

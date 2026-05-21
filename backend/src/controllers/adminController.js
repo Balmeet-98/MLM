@@ -10,7 +10,7 @@ const getAllUsers = async (req, res, next) => {
 
     let query = supabase
       .from('users')
-      .select('id, name, email, phone, referral_code, role, is_active, created_at, consecutive_missed_installments, sponsor_id, position', { count: 'exact' })
+      .select('id, name, email, phone, referral_code, role, is_active, created_at, consecutive_missed_installments, sponsor_id', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 

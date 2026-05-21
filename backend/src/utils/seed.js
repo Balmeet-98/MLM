@@ -133,7 +133,7 @@ const seed = async () => {
       // Create wallet for admin
       await supabase.from('wallets').insert({ user_id: adminUser.id, balance: 0 });
       // Create binary tree node for admin (root)
-      await supabase.from('binary_tree').insert({ user_id: adminUser.id });
+      await supabase.from('tree_nodes').insert({ user_id: adminUser.id });
       console.log('Admin created: admin@samriddhi.com / Admin@123');
     }
   } else {

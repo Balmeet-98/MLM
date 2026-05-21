@@ -1,6 +1,7 @@
 const supabase = require('../config/supabase');
 const { creditDirectIncome, updatePairsAndCredit } = require('../services/incomeService');
 const { checkAndAssignRanks } = require('../services/rewardService');
+const { walkParentChain } = require('../services/treeService');
 
 const getProducts = async (req, res, next) => {
   try {
@@ -59,26 +60,10 @@ const purchaseProduct = async (req, res, next) => {
       await creditDirectIncome(userId);
 
       // Update pair counts for parent and ancestors
-      const { data: treeNode } = await supabase
-        .from('binary_tree')
-        .select('parent_id')
-        .eq('user_id', userId)
-        .single();
-
-      if (treeNode?.parent_id) {
-        let currentParent = treeNode.parent_id;
-        // Update pairs going up the tree (at least 3 levels)
-        for (let i = 0; i < 10 && currentParent; i++) {
-          await updatePairsAndCredit(currentParent);
-          await checkAndAssignRanks(currentParent);
-
-          const { data: parentNode } = await supabase
-            .from('binary_tree')
-            .select('parent_id')
-            .eq('user_id', currentParent)
-            .single();
-          currentParent = parentNode?.parent_id;
-        }
+      const parentChain = await walkParentChain(userId);
+      for (const parentId of parentChain) {
+        await updatePairsAndCredit(parentId);
+        await checkAndAssignRanks(parentId);
       }
     }
 

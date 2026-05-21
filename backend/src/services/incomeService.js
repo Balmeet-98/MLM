@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
 const { creditWallet } = require('./walletService');
-const { getAncestors } = require('./binaryTreeService');
+const { getAncestors, getDirectChildren, countSubtreeSize } = require('./treeService');
 
 const DIRECT_INCOME = { 1: 400, 2: 200, 3: 100 };
 const PAIR_INCOME = 50; // Rs.50 per pair formed
@@ -33,28 +33,22 @@ const creditDirectIncome = async (newUserId) => {
 };
 
 /**
- * Update pair counts for a user when their left or right side gets a new member.
- * Called after every new member placement.
+ * Update pair counts: floor(activeLegs / 2) where each direct child is a leg.
  */
 const updatePairsAndCredit = async (parentUserId) => {
-  const { data: treeNode } = await supabase
-    .from('binary_tree')
-    .select('left_child_id, right_child_id')
-    .eq('user_id', parentUserId)
-    .single();
+  const legs = await getDirectChildren(parentUserId);
+  if (legs.length === 0) return 0;
 
-  if (!treeNode) return;
+  const legCounts = await Promise.all(
+    legs.map(async (childId) => ({
+      childId,
+      count: await countSubtreeSize(childId),
+    }))
+  );
 
-  const leftCount = treeNode.left_child_id
-    ? await countSubtreeSize(treeNode.left_child_id)
-    : 0;
-  const rightCount = treeNode.right_child_id
-    ? await countSubtreeSize(treeNode.right_child_id)
-    : 0;
+  const activeLegCount = legCounts.filter((l) => l.count > 0).length;
+  const newPairs = Math.floor(activeLegCount / 2);
 
-  const newPairs = Math.min(leftCount, rightCount);
-
-  // Get current pairs record
   const { data: existing } = await supabase
     .from('pairs')
     .select('total_pairs')
@@ -64,17 +58,19 @@ const updatePairsAndCredit = async (parentUserId) => {
   const previousPairs = existing ? existing.total_pairs : 0;
   const newlyFormedPairs = newPairs - previousPairs;
 
-  if (newlyFormedPairs > 0) {
-    // Upsert pairs record
-    await supabase.from('pairs').upsert({
-      user_id: parentUserId,
-      left_count: leftCount,
-      right_count: rightCount,
-      total_pairs: newPairs,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+  const pairsPayload = {
+    user_id: parentUserId,
+    active_leg_count: activeLegCount,
+    leg_counts: legCounts,
+    total_pairs: newPairs,
+    left_count: 0,
+    right_count: 0,
+    updated_at: new Date().toISOString(),
+  };
 
-    // Credit pair income
+  if (newlyFormedPairs > 0) {
+    await supabase.from('pairs').upsert(pairsPayload, { onConflict: 'user_id' });
+
     const pairIncomeAmount = newlyFormedPairs * PAIR_INCOME;
     await creditWallet(
       parentUserId,
@@ -91,14 +87,7 @@ const updatePairsAndCredit = async (parentUserId) => {
       level: null,
     });
   } else {
-    // Just update counts even if no new pairs
-    await supabase.from('pairs').upsert({
-      user_id: parentUserId,
-      left_count: leftCount,
-      right_count: rightCount,
-      total_pairs: newPairs,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+    await supabase.from('pairs').upsert(pairsPayload, { onConflict: 'user_id' });
   }
 
   return newPairs;
@@ -165,7 +154,6 @@ const creditMonthlyRankIncome = async () => {
       level: null,
     });
 
-    // Check if income period has ended
     if (new Date(record.monthly_income_end) <= now) {
       await supabase
         .from('user_ranks')
@@ -176,25 +164,6 @@ const creditMonthlyRankIncome = async () => {
   }
 
   console.log(`[CRON] Credited monthly rank income to ${activeRankIncomes.length} members`);
-};
-
-const countSubtreeSize = async (rootId) => {
-  let count = 0;
-  const queue = [rootId];
-  while (queue.length > 0) {
-    const id = queue.shift();
-    count++;
-    const { data } = await supabase
-      .from('binary_tree')
-      .select('left_child_id, right_child_id')
-      .eq('user_id', id)
-      .single();
-    if (data) {
-      if (data.left_child_id) queue.push(data.left_child_id);
-      if (data.right_child_id) queue.push(data.right_child_id);
-    }
-  }
-  return count;
 };
 
 module.exports = {

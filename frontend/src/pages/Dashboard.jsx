@@ -88,21 +88,21 @@ export default function Dashboard() {
           value={(pairs?.total_pairs || 0).toLocaleString()}
           icon="🤝"
           color="purple"
-          subtitle={`L: ${pairs?.left_count || 0}  ·  R: ${pairs?.right_count || 0}`}
+          subtitle={`Active legs: ${pairs?.active_leg_count || 0}`}
         />
         <StatCard
           title="Team Size"
           value={(team?.total || 0).toLocaleString()}
           icon="👥"
           color="yellow"
-          subtitle={`L: ${team?.leftCount || 0}  ·  R: ${team?.rightCount || 0}`}
+          subtitle={`Direct: ${team?.directChildren || 0}  ·  Active legs: ${team?.activeLegs || 0}`}
         />
       </div>
 
       {/* ── Secondary Stats ── */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard title="Left Team" value={(team?.leftCount || 0).toLocaleString()} icon="◀" color="red" />
-        <StatCard title="Right Team" value={(team?.rightCount || 0).toLocaleString()} icon="▶" color="red" />
+        <StatCard title="Direct Referrals" value={(team?.directChildren || 0).toLocaleString()} icon="🔗" color="red" />
+        <StatCard title="Active Legs" value={(team?.activeLegs || 0).toLocaleString()} icon="🦵" color="red" subtitle="Legs with team volume" />
         <StatCard title="Rewards Earned" value={rewardsCount || 0} icon="🏆" color="yellow" subtitle="Tap to claim" />
       </div>
 

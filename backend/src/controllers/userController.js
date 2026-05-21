@@ -1,25 +1,21 @@
 const supabase = require('../config/supabase');
-const { countTeam } = require('../services/binaryTreeService');
+const { countTeam } = require('../services/treeService');
 const { getWalletBalance } = require('../services/walletService');
 
 const getDashboard = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    // Team counts
-    const { leftCount, rightCount, total } = await countTeam(userId);
+    const { total, directChildren, activeLegs } = await countTeam(userId);
 
-    // Wallet balance
     const balance = await getWalletBalance(userId);
 
-    // Pairs
     const { data: pairsData } = await supabase
       .from('pairs')
-      .select('total_pairs, left_count, right_count')
+      .select('total_pairs, active_leg_count, leg_counts')
       .eq('user_id', userId)
       .single();
 
-    // Current rank
     const { data: userRanks } = await supabase
       .from('user_ranks')
       .select('rank_id, achieved_at, ranks(name, rank_order)')
@@ -29,14 +25,12 @@ const getDashboard = async (req, res, next) => {
 
     const currentRank = userRanks?.[0]?.ranks?.name || 'No Rank';
 
-    // Total income
     const { data: incomeData } = await supabase
       .from('income_logs')
       .select('amount')
       .eq('user_id', userId);
     const totalIncome = incomeData?.reduce((sum, i) => sum + parseFloat(i.amount), 0) || 0;
 
-    // Upcoming installment
     const { data: nextInstallment } = await supabase
       .from('installments')
       .select('month_number, due_date, status, amount')
@@ -46,13 +40,11 @@ const getDashboard = async (req, res, next) => {
       .limit(1)
       .single();
 
-    // Rewards count
     const { count: rewardsCount } = await supabase
       .from('user_rewards')
       .select('id', { count: 'exact' })
       .eq('user_id', userId);
 
-    // Recent transactions
     const { data: recentTx } = await supabase
       .from('transactions')
       .select('*')
@@ -61,9 +53,9 @@ const getDashboard = async (req, res, next) => {
       .limit(5);
 
     res.json({
-      team: { leftCount, rightCount, total },
+      team: { total, directChildren, activeLegs },
       wallet: { balance },
-      pairs: pairsData || { total_pairs: 0, left_count: 0, right_count: 0 },
+      pairs: pairsData || { total_pairs: 0, active_leg_count: 0, leg_counts: [] },
       currentRank,
       totalIncome,
       rewardsCount: rewardsCount || 0,
@@ -79,7 +71,7 @@ const getProfile = async (req, res, next) => {
   try {
     const { data: user } = await supabase
       .from('users')
-      .select('id, name, email, phone, referral_code, role, is_active, created_at, group_id, consecutive_missed_installments')
+      .select('id, name, email, phone, referral_code, role, is_active, created_at, group_id, consecutive_missed_installments, sponsor_id')
       .eq('id', req.user.id)
       .single();
 

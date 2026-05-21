@@ -1,11 +1,11 @@
 const supabase = require('../config/supabase');
+const { getDirectChildren } = require('./treeService');
 
 /**
  * Check if a user has crossed any new rank thresholds after a new pair is formed.
  * Auto-assigns rank and reward record.
  */
 const checkAndAssignRanks = async (userId) => {
-  // Get current pairs count
   const { data: pairsData } = await supabase
     .from('pairs')
     .select('total_pairs')
@@ -15,42 +15,28 @@ const checkAndAssignRanks = async (userId) => {
   if (!pairsData) return;
   const totalPairs = pairsData.total_pairs;
 
-  // Verify user has at least 1 direct on left AND right (prerequisite for all ranks)
-  const { data: treeNode } = await supabase
-    .from('binary_tree')
-    .select('left_child_id, right_child_id')
-    .eq('user_id', userId)
-    .single();
+  // Require at least 2 direct sponsored children in the tree
+  const directChildIds = await getDirectChildren(userId);
+  if (directChildIds.length < 2) return;
 
-  if (!treeNode?.left_child_id || !treeNode?.right_child_id) return;
-
-  // Check if left and right are DIRECT children (sponsored by this user)
-  const { data: leftUser } = await supabase
+  const { data: directUsers } = await supabase
     .from('users')
     .select('id, sponsor_id')
-    .eq('id', treeNode.left_child_id)
-    .single();
+    .in('id', directChildIds);
 
-  const { data: rightUser } = await supabase
-    .from('users')
-    .select('id, sponsor_id')
-    .eq('id', treeNode.right_child_id)
-    .single();
+  const directSponsoredCount = (directUsers || []).filter(
+    (u) => u.sponsor_id === userId
+  ).length;
 
-  const hasDirectLeft = leftUser?.sponsor_id === userId;
-  const hasDirectRight = rightUser?.sponsor_id === userId;
+  if (directSponsoredCount < 2) return;
 
-  if (!hasDirectLeft || !hasDirectRight) return;
-
-  // Get all ranks the user hasn't achieved yet
   const { data: achievedRanks } = await supabase
     .from('user_ranks')
     .select('rank_id')
     .eq('user_id', userId);
 
-  const achievedIds = new Set((achievedRanks || []).map(r => r.rank_id));
+  const achievedIds = new Set((achievedRanks || []).map((r) => r.rank_id));
 
-  // Get all ranks below or equal to current pairs
   const { data: eligibleRanks } = await supabase
     .from('ranks')
     .select('*')
@@ -69,7 +55,6 @@ const checkAndAssignRanks = async (userId) => {
       incomeEnd.setMonth(incomeEnd.getMonth() + rank.income_duration_months);
     }
 
-    // Create user_rank record
     await supabase.from('user_ranks').insert({
       user_id: userId,
       rank_id: rank.id,
@@ -79,7 +64,6 @@ const checkAndAssignRanks = async (userId) => {
       status: rank.monthly_income ? 'active' : 'completed',
     });
 
-    // Create reward record
     await supabase.from('user_rewards').insert({
       user_id: userId,
       reward_name: rank.reward_name,
@@ -98,7 +82,6 @@ const checkAndAssignRanks = async (userId) => {
  * Returns the winner(s) and their assigned rewards.
  */
 const runLuckyDraw = async (groupId, monthNumber) => {
-  // Get all fully compliant members in this group (100% installments paid)
   const { data: members } = await supabase
     .from('users')
     .select('id, name')
@@ -109,7 +92,6 @@ const runLuckyDraw = async (groupId, monthNumber) => {
     throw new Error('No active members in this group');
   }
 
-  // Filter: all installments up to this month must be paid
   const eligibleMembers = [];
   for (const member of members) {
     const { data: installments } = await supabase
@@ -120,7 +102,7 @@ const runLuckyDraw = async (groupId, monthNumber) => {
       .lte('month_number', monthNumber);
 
     const allPaid = installments && installments.length >= monthNumber &&
-      installments.every(i => i.status === 'paid');
+      installments.every((i) => i.status === 'paid');
 
     if (allPaid) eligibleMembers.push(member);
   }
@@ -129,7 +111,6 @@ const runLuckyDraw = async (groupId, monthNumber) => {
     throw new Error('No fully compliant members eligible for draw');
   }
 
-  // Get reward catalog for this month range
   const { data: rewards } = await supabase
     .from('reward_catalog')
     .select('*')
@@ -148,7 +129,6 @@ const runLuckyDraw = async (groupId, monthNumber) => {
     const pool = [...eligibleMembers];
 
     for (let i = 0; i < qty && pool.length > 0; i++) {
-      // Random selection
       const idx = Math.floor(Math.random() * pool.length);
       const winner = pool.splice(idx, 1)[0];
 

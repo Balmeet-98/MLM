@@ -1,4 +1,4 @@
-const { getSubtree, countTeam } = require('../services/binaryTreeService');
+const { getSubtree } = require('../services/treeService');
 const supabase = require('../config/supabase');
 
 const getMyTree = async (req, res, next) => {
@@ -24,7 +24,7 @@ const getDirectReferrals = async (req, res, next) => {
   try {
     const { data: referrals } = await supabase
       .from('users')
-      .select('id, name, email, referral_code, is_active, position, created_at')
+      .select('id, name, email, referral_code, is_active, created_at')
       .eq('sponsor_id', req.user.id)
       .order('created_at', { ascending: false });
 

@@ -7,7 +7,7 @@ export default function Layout({ adminOnly = false }) {
   const { isAuthenticated, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   if (adminOnly && user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
 
   return (

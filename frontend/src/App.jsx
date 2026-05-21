@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/layout/Layout';
 
+import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
@@ -31,9 +32,9 @@ export default function App() {
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
 
             {/* User routes */}
             <Route element={<Layout />}>
@@ -59,7 +60,7 @@ export default function App() {
               <Route path="/admin/income" element={<AdminIncome />} />
             </Route>
 
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppProvider>
       </AuthProvider>
