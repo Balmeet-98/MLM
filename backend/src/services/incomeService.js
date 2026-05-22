@@ -2,8 +2,8 @@ const supabase = require('../config/supabase');
 const { creditWallet } = require('./walletService');
 const { getAncestors, getDirectChildren, countSubtreeSize } = require('./treeService');
 
-const DIRECT_INCOME = { 1: 400, 2: 200, 3: 100 };
-const PAIR_INCOME = 50; // Rs.50 per pair formed
+const DIRECT_INCOME = { 1: 400, 2: 300, 3: 100 };
+// Pairs count toward lifetime rank rewards only (no per-pair cash — see flyer)
 
 /**
  * Credit direct income to sponsors (L1, L2, L3) when a new member activates.
@@ -33,8 +33,17 @@ const creditDirectIncome = async (newUserId) => {
 };
 
 /**
- * Update pair counts: floor(activeLegs / 2) where each direct child is a leg.
+ * Pair active legs in order (1st with 2nd, 3rd with 4th, …).
+ * Each matched pair contributes min(legA size, legB size) — e.g. A=3, B=3 → 3 pairs toward ranks.
  */
+const calculatePairsFromActiveLegs = (activeLegsList) => {
+  let total = 0;
+  for (let i = 0; i + 1 < activeLegsList.length; i += 2) {
+    total += Math.min(activeLegsList[i].count, activeLegsList[i + 1].count);
+  }
+  return total;
+};
+
 const updatePairsAndCredit = async (parentUserId) => {
   const legs = await getDirectChildren(parentUserId);
   if (legs.length === 0) return 0;
@@ -46,8 +55,12 @@ const updatePairsAndCredit = async (parentUserId) => {
     }))
   );
 
-  const activeLegCount = legCounts.filter((l) => l.count > 0).length;
-  const newPairs = Math.floor(activeLegCount / 2);
+  const activeLegsList = legCounts.filter((l) => l.count > 1);
+  const activeLegCount = activeLegsList.length;
+  const newPairs = calculatePairsFromActiveLegs(activeLegsList);
+
+  const leftCount = activeLegsList[0]?.count || legCounts[0]?.count || 0;
+  const rightCount = activeLegsList[1]?.count || legCounts[1]?.count || 0;
 
   const { data: existing } = await supabase
     .from('pairs')
@@ -55,40 +68,17 @@ const updatePairsAndCredit = async (parentUserId) => {
     .eq('user_id', parentUserId)
     .single();
 
-  const previousPairs = existing ? existing.total_pairs : 0;
-  const newlyFormedPairs = newPairs - previousPairs;
-
   const pairsPayload = {
     user_id: parentUserId,
     active_leg_count: activeLegCount,
     leg_counts: legCounts,
     total_pairs: newPairs,
-    left_count: 0,
-    right_count: 0,
+    left_count: leftCount,
+    right_count: rightCount,
     updated_at: new Date().toISOString(),
   };
 
-  if (newlyFormedPairs > 0) {
-    await supabase.from('pairs').upsert(pairsPayload, { onConflict: 'user_id' });
-
-    const pairIncomeAmount = newlyFormedPairs * PAIR_INCOME;
-    await creditWallet(
-      parentUserId,
-      pairIncomeAmount,
-      `Pair income: ${newlyFormedPairs} new pair(s)`,
-      null
-    );
-
-    await supabase.from('income_logs').insert({
-      user_id: parentUserId,
-      income_type: 'pair',
-      amount: pairIncomeAmount,
-      from_user_id: null,
-      level: null,
-    });
-  } else {
-    await supabase.from('pairs').upsert(pairsPayload, { onConflict: 'user_id' });
-  }
+  await supabase.from('pairs').upsert(pairsPayload, { onConflict: 'user_id' });
 
   return newPairs;
 };

@@ -9,7 +9,8 @@ const actions = [
   { to: '/admin/withdrawals', icon: '💸', label: 'Withdrawals',     bg: 'bg-red-50',    hover: 'hover:bg-red-100' },
   { to: '/admin/lucky-draw',  icon: '🎰', label: 'Lucky Draw',      bg: 'bg-purple-50', hover: 'hover:bg-purple-100' },
   { to: '/admin/rewards',     icon: '🎁', label: 'Reward Pickup',   bg: 'bg-amber-50',  hover: 'hover:bg-amber-100' },
-  { to: '/admin/products',    icon: '📦', label: 'Products',        bg: 'bg-green-50',  hover: 'hover:bg-green-100' },
+  { to: '/admin/pairs',       icon: '🤝', label: 'Pair Insights',   bg: 'bg-green-50',  hover: 'hover:bg-green-100' },
+  // { to: '/admin/products',    icon: '📦', label: 'Products',        bg: 'bg-green-50',  hover: 'hover:bg-green-100' },
   { to: '/admin/groups',      icon: '🗂️', label: 'Groups',          bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100' },
   { to: '/admin/income',      icon: '📈', label: 'Income Logs',     bg: 'bg-teal-50',   hover: 'hover:bg-teal-100' },
 ];

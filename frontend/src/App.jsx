@@ -13,11 +13,12 @@ import Income from './pages/Income';
 import Wallet from './pages/Wallet';
 import Installments from './pages/Installments';
 import Rewards from './pages/Rewards';
-import ProductSelect from './pages/ProductSelect';
+// import ProductSelect from './pages/ProductSelect';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
-import AdminProducts from './pages/admin/AdminProducts';
+// import AdminProducts from './pages/admin/AdminProducts';
+import AdminPairs from './pages/admin/AdminPairs';
 import AdminGroups from './pages/admin/AdminGroups';
 import AdminLuckyDraw from './pages/admin/AdminLuckyDraw';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
@@ -44,7 +45,7 @@ export default function App() {
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/installments" element={<Installments />} />
               <Route path="/rewards" element={<Rewards />} />
-              <Route path="/products/select" element={<ProductSelect />} />
+              {/* <Route path="/products/select" element={<ProductSelect />} /> */}
             </Route>
 
             {/* Admin routes */}
@@ -52,7 +53,8 @@ export default function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/users/:userId/tree" element={<Tree />} />
-              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/pairs" element={<AdminPairs />} />
+              {/* <Route path="/admin/products" element={<AdminProducts />} /> */}
               <Route path="/admin/groups" element={<AdminGroups />} />
               <Route path="/admin/lucky-draw" element={<AdminLuckyDraw />} />
               <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />

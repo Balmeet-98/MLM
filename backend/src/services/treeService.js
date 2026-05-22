@@ -141,12 +141,16 @@ const countTeam = async (userId) => {
       count: await countSubtreeSize(childId, childrenMap),
     }))
   );
-  const activeLegs = legCounts.filter((l) => l.count > 0).length;
+  const activeLegs = legCounts.filter((l) => l.count > 1).length;
+  const leftCount = legCounts[0]?.count || 0;
+  const rightCount = legCounts[1]?.count || 0;
 
   return {
     total,
     directChildren: directChildren.length,
     activeLegs,
+    leftCount,
+    rightCount,
     legCounts,
   };
 };
