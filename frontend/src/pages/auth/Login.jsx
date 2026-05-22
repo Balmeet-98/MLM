@@ -14,8 +14,8 @@ export default function Login() {
     try {
       const data = await login(form.email, form.password);
       if (data.needsActivation) {
-        toast('Account registered! Please select a product to activate.', { icon: 'ℹ️' });
-        navigate('/products/select');
+        toast.error('Account not activated. Please contact support.');
+        return;
       } else if (data.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {

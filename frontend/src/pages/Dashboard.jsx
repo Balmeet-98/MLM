@@ -4,17 +4,24 @@ import { format } from 'date-fns';
 import api from '../services/api';
 import StatCard from '../components/dashboard/StatCard';
 import RankBadge from '../components/dashboard/RankBadge';
+import PairNotifications from '../components/dashboard/PairNotifications';
+import UserNotifications from '../components/dashboard/UserNotifications';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [data, setData]     = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadDashboard = () => {
     api.get('/user/dashboard')
-      .then(res => setData(res.data))
+      .then((res) => setData(res.data))
       .catch(() => toast.error('Failed to load dashboard'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    loadDashboard();
   }, []);
 
   if (loading) return (
@@ -23,7 +30,12 @@ export default function Dashboard() {
     </div>
   );
 
-  const { team, wallet, pairs, currentRank, totalIncome, rewardsCount, nextInstallment, recentTransactions } = data || {};
+  const {
+    team, wallet, pairs, pairInsights, notifications, unreadNotificationCount,
+    currentRank, totalIncome, rewardsCount, nextInstallment, recentTransactions,
+  } = data || {};
+  const hotAlerts = pairInsights?.notifications?.filter((n) => n.priority === 'urgent' || n.priority === 'high')?.length || 0;
+  const luckyDrawAlerts = notifications?.filter((n) => n.type === 'lucky_draw_scheduled' && !n.read_at) || [];
 
   const installmentDue = nextInstallment?.status === 'pending';
   const daysUntilDue = nextInstallment
@@ -40,8 +52,38 @@ export default function Dashboard() {
           <h1 className="page-title">Dashboard</h1>
           <p className="page-subtitle">Welcome back! Here's your network overview.</p>
         </div>
-        <RankBadge rank={currentRank} size="lg" />
+        <div className="flex items-center gap-2">
+          {unreadNotificationCount > 0 && (
+            <span className="text-xs font-bold bg-purple-600 text-white px-2.5 py-1 rounded-full">
+              {unreadNotificationCount} notification{unreadNotificationCount === 1 ? '' : 's'}
+            </span>
+          )}
+          {hotAlerts > 0 && (
+            <span className="text-xs font-bold bg-red-600 text-white px-2.5 py-1 rounded-full animate-pulse">
+              {hotAlerts} pair alert{hotAlerts === 1 ? '' : 's'}
+            </span>
+          )}
+          <RankBadge rank={currentRank} size="lg" />
+        </div>
       </div>
+
+      {/* ── Lucky draw & system notifications ── */}
+      {(notifications?.length > 0 || luckyDrawAlerts.length > 0) && (
+        <div className="card border-2 border-purple-200">
+          <UserNotifications
+            notifications={notifications}
+            unreadCount={unreadNotificationCount}
+            onRefresh={loadDashboard}
+          />
+        </div>
+      )}
+
+      {/* ── Pair notifications ── */}
+      {pairInsights && (
+        <div className="card border-2 border-red-100">
+          <PairNotifications pairInsights={pairInsights} />
+        </div>
+      )}
 
       {/* ── Installment Alert ── */}
       {installmentDue && daysUntilDue <= 10 && (
@@ -88,21 +130,21 @@ export default function Dashboard() {
           value={(pairs?.total_pairs || 0).toLocaleString()}
           icon="🤝"
           color="purple"
-          subtitle={`Active legs: ${pairs?.active_leg_count || 0}`}
+          subtitle={`Legs ${pairs?.left_count || 0} & ${pairs?.right_count || 0} → min = pairs`}
         />
         <StatCard
           title="Team Size"
           value={(team?.total || 0).toLocaleString()}
           icon="👥"
           color="yellow"
-          subtitle={`Direct: ${team?.directChildren || 0}  ·  Active legs: ${team?.activeLegs || 0}`}
+          subtitle={`${team?.directChildren || 0} direct · ${team?.activeLegs || 0} active leg(s)`}
         />
       </div>
 
       {/* ── Secondary Stats ── */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard title="Direct Referrals" value={(team?.directChildren || 0).toLocaleString()} icon="🔗" color="red" />
-        <StatCard title="Active Legs" value={(team?.activeLegs || 0).toLocaleString()} icon="🦵" color="red" subtitle="Legs with team volume" />
+        <StatCard title="1st Direct Leg" value={(team?.leftCount || 0).toLocaleString()} icon="◀" color="red" subtitle="Subtree size" />
+        <StatCard title="2nd Direct Leg" value={(team?.rightCount || 0).toLocaleString()} icon="▶" color="red" subtitle="Subtree size" />
         <StatCard title="Rewards Earned" value={rewardsCount || 0} icon="🏆" color="yellow" subtitle="Tap to claim" />
       </div>
 

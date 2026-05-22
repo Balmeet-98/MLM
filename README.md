@@ -2,7 +2,9 @@
 
 > "Plan your work and work your plan" | Sales Promotion with Exciting Rewards
 
-A full-stack binary MLM web application for Samriddhi Network, Jammu.
+A full-stack MLM web application for Samriddhi Network, Jammu.
+
+**Full documentation:** See [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) for complete system architecture, flows, income rules, API, and deployment.
 
 ---
 

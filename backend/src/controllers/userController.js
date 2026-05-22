@@ -1,18 +1,20 @@
 const supabase = require('../config/supabase');
 const { countTeam } = require('../services/treeService');
 const { getWalletBalance } = require('../services/walletService');
+const { getPairInsights } = require('../services/pairInsightService');
+const { getUserNotifications } = require('../services/notificationService');
 
 const getDashboard = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const { total, directChildren, activeLegs } = await countTeam(userId);
+    const { total, directChildren, activeLegs, leftCount, rightCount } = await countTeam(userId);
 
     const balance = await getWalletBalance(userId);
 
     const { data: pairsData } = await supabase
       .from('pairs')
-      .select('total_pairs, active_leg_count, leg_counts')
+      .select('total_pairs, active_leg_count, left_count, right_count, leg_counts')
       .eq('user_id', userId)
       .single();
 
@@ -52,10 +54,25 @@ const getDashboard = async (req, res, next) => {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    const pairInsights = await getPairInsights(userId);
+
+    let notifications = [];
+    let unreadCount = 0;
+    try {
+      const notifResult = await getUserNotifications(userId, { limit: 10 });
+      notifications = notifResult.notifications;
+      unreadCount = notifResult.unreadCount;
+    } catch {
+      // notifications table may not exist until migration is run
+    }
+
     res.json({
-      team: { total, directChildren, activeLegs },
+      team: { total, directChildren, activeLegs, leftCount, rightCount },
       wallet: { balance },
-      pairs: pairsData || { total_pairs: 0, active_leg_count: 0, leg_counts: [] },
+      pairs: pairsData || { total_pairs: 0, active_leg_count: 0, left_count: 0, right_count: 0, leg_counts: [] },
+      pairInsights,
+      notifications,
+      unreadNotificationCount: unreadCount,
       currentRank,
       totalIncome,
       rewardsCount: rewardsCount || 0,

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const INCOME_TYPES = [
   { icon: '💵', title: 'Direct Income', desc: 'Earn ₹400 (L1), ₹200 (L2), and ₹100 (L3) when members in your upline activate.' },
-  { icon: '🤝', title: 'Pair Income', desc: '₹50 per pair — every two active direct legs under you count as one pair.' },
+  { icon: '🤝', title: 'Pair Rewards', desc: 'Pairs unlock lifetime rank rewards (P.P. Set, bikes, cars, villa) — no per-pair cash.' },
   { icon: '📅', title: 'Installment Income', desc: '₹100 to your direct sponsor each time a referral pays their monthly installment.' },
   { icon: '🏆', title: 'Rank Rewards', desc: '14 ranks from Executive to Black Diamond Director — gifts, cars, property & monthly income.' },
 ];
@@ -20,7 +20,7 @@ const HIGHLIGHT_RANKS = [
   { name: 'Silver', pairs: 36, reward: 'Thailand Tour / ₹27,000' },
   { name: '5 Star Ruby', pairs: 1050, reward: 'Auto Car' },
   { name: 'Director', pairs: 13500, reward: 'XUV Mahindra' },
-  { name: 'Black Diamond Director', pairs: 216000, reward: 'Grand Villa' },
+  { name: 'Black Diamond Director', pairs: 200000, reward: 'Grand Villa' },
 ];
 
 const FEATURES = [
@@ -184,8 +184,8 @@ export default function Landing() {
           </div>
           <div className="mt-8 rounded-2xl bg-amber-50 border border-amber-200 p-5 text-sm text-amber-950">
             <strong className="text-amber-900">Pair rule:</strong>{' '}
-            <span className="text-amber-900/90">Each direct referral is one leg. When any two legs have team volume,
-            you earn one pair (₹50). More active legs → more pairs (e.g. 4 active legs = 2 pairs).</span>
+            <span className="text-amber-900/90">Unlimited direct children. Match active legs in pairs (1st+2nd, 3rd+4th…).
+            Each match adds min(leg size, leg size) toward rank rewards — e.g. leg A=3, leg B=3 → 3 pairs (Executive at 3).</span>
           </div>
         </div>
       </section>

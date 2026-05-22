@@ -11,7 +11,7 @@ const userRoutes = require('./src/routes/user');
 const treeRoutes = require('./src/routes/tree');
 const walletRoutes = require('./src/routes/wallet');
 const installmentRoutes = require('./src/routes/installments');
-const productRoutes = require('./src/routes/products');
+// const productRoutes = require('./src/routes/products');
 const rewardRoutes = require('./src/routes/rewards');
 const adminRoutes = require('./src/routes/admin');
 const paymentRoutes = require('./src/routes/payments');
@@ -36,7 +36,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/tree', treeRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/installments', installmentRoutes);
-app.use('/api/products', productRoutes);
+// app.use('/api/products', productRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
 
