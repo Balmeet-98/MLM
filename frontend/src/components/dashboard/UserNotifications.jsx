@@ -45,7 +45,7 @@ export default function UserNotifications({ notifications = [], unreadCount = 0,
           )}
         </h2>
         {unreadCount > 0 && (
-          <button type="button" onClick={markAllRead} className="text-xs font-semibold text-red-700 hover:underline">
+          <button type="button" onClick={markAllRead} className="text-xs font-semibold text-brand-600 hover:underline">
             Mark all read
           </button>
         )}

@@ -127,7 +127,7 @@ export default function AdminProducts() {
                 ) : products.map(p => (
                   <tr key={p.id}>
                     <td className="font-medium text-slate-800">{p.name}</td>
-                    <td className="font-bold text-red-700">₹{parseFloat(p.price).toLocaleString('en-IN')}</td>
+                    <td className="font-bold text-brand-600">₹{parseFloat(p.price).toLocaleString('en-IN')}</td>
                     <td><span className={TIER_BADGE[p.tier] || 'badge badge-gray'}>{p.tier?.replace('_', ' ')}</span></td>
                     <td className="capitalize text-slate-500">{p.category}</td>
                     <td><span className={`badge ${p.is_active ? 'badge-green' : 'badge-red'}`}>{p.is_active ? 'Active' : 'Inactive'}</span></td>

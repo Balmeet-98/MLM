@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/brand/Logo';
+import ContactInfo, { CONTACT } from '../components/brand/ContactInfo';
 
 const INCOME_TYPES = [
   { icon: '💵', title: 'Direct Income', desc: 'Earn ₹400 (L1), ₹200 (L2), and ₹100 (L3) when members in your upline activate.' },
@@ -49,23 +51,19 @@ export default function Landing() {
       {/* Nav */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-yellow-400 rounded-lg flex items-center justify-center font-black text-red-800 text-sm shadow-sm">S</div>
-            <div className="text-left">
-              <p className="font-bold text-slate-900 text-sm leading-none" style={{ fontFamily: 'var(--font-heading)' }}>Samriddhi</p>
-              <p className="text-red-700 text-[10px] font-semibold">Network</p>
-            </div>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-left">
+            <Logo size="sm" to={null} />
           </button>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-            <button type="button" onClick={() => scrollTo('how')} className="hover:text-red-700 transition-colors">How it works</button>
-            <button type="button" onClick={() => scrollTo('income')} className="hover:text-red-700 transition-colors">Income</button>
-            <button type="button" onClick={() => scrollTo('ranks')} className="hover:text-red-700 transition-colors">Ranks</button>
-            <button type="button" onClick={() => scrollTo('contact')} className="hover:text-red-700 transition-colors">Contact</button>
+            <button type="button" onClick={() => scrollTo('how')} className="hover:text-brand-600 transition-colors">How it works</button>
+            <button type="button" onClick={() => scrollTo('income')} className="hover:text-brand-600 transition-colors">Income</button>
+            <button type="button" onClick={() => scrollTo('ranks')} className="hover:text-brand-600 transition-colors">Ranks</button>
+            <button type="button" onClick={() => scrollTo('contact')} className="hover:text-brand-600 transition-colors">Contact</button>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link to="/login" className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-red-700 transition-colors">
+            <Link to="/login" className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-brand-600 transition-colors">
               Login
             </Link>
             <Link to="/register" className="btn-primary text-sm py-2 px-4 sm:px-5">
@@ -78,11 +76,11 @@ export default function Landing() {
       {/* Hero */}
       <section
         className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 px-4 sm:px-6 text-white"
-        style={{ background: 'linear-gradient(155deg, #7f1d1d 0%, #b91c1c 45%, #dc2626 100%)' }}
+        style={{ background: 'var(--brand-gradient)' }}
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-yellow-300 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-red-900 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-brand-900 blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto">
@@ -95,16 +93,16 @@ export default function Landing() {
             style={{ fontFamily: 'var(--font-heading)' }}
           >
             Plan your work.<br />
-            <span className="text-yellow-300">Work your plan.</span>
+            <span className="text-amber-300">Work your plan.</span>
           </h1>
-          <p className="mt-6 text-lg text-red-100 max-w-xl leading-relaxed">
+          <p className="mt-6 text-lg text-orange-100 max-w-xl leading-relaxed">
             Build a real referral business with Samriddhi Network — unlimited direct team,
             transparent income, rank rewards from dinner sets to grand villas, and a 16-month savings plan.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               to="/register"
-              className="inline-flex items-center justify-center px-8 py-3 rounded-[10px] text-base font-bold bg-yellow-400 text-red-900 hover:bg-yellow-300 shadow-lg transition-colors"
+              className="inline-flex items-center justify-center px-8 py-3 rounded-[10px] text-base font-bold bg-amber-400 text-brand-900 hover:bg-amber-300 shadow-lg transition-colors"
             >
               Start earning — Join now
             </Link>
@@ -124,8 +122,8 @@ export default function Landing() {
               { value: '14', label: 'Rank levels' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl bg-white/15 border border-white/20 p-4 text-center backdrop-blur-sm">
-                <p className="text-2xl font-black text-yellow-300" style={{ fontFamily: 'var(--font-heading)' }}>{s.value}</p>
-                <p className="text-xs text-red-100 mt-1 font-medium">{s.label}</p>
+                <p className="text-2xl font-black text-amber-300" style={{ fontFamily: 'var(--font-heading)' }}>{s.value}</p>
+                <p className="text-xs text-orange-100 mt-1 font-medium">{s.label}</p>
               </div>
             ))}
           </div>
@@ -140,7 +138,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-6">
             {STEPS.map((s) => (
               <div key={s.step} className="relative rounded-2xl bg-slate-50 border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
-                <span className="text-4xl font-black text-red-200 absolute top-4 right-4" style={{ fontFamily: 'var(--font-heading)' }}>{s.step}</span>
+                <span className="text-4xl font-black text-brand-200 absolute top-4 right-4" style={{ fontFamily: 'var(--font-heading)' }}>{s.step}</span>
                 <h3 className="text-lg font-bold text-slate-900 mt-6 mb-2 relative z-10" style={{ fontFamily: 'var(--font-heading)' }}>{s.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed relative z-10">{s.desc}</p>
               </div>
@@ -156,7 +154,7 @@ export default function Landing() {
           <p className="text-slate-600 mb-10">Everything you need to manage your network in one place.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm hover:border-red-300 transition-colors">
+              <div key={f.title} className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm hover:border-brand-300 transition-colors">
                 <span className="text-3xl">{f.icon}</span>
                 <h3 className="font-bold text-slate-900 mt-3 mb-2" style={{ fontFamily: 'var(--font-heading)' }}>{f.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">{f.desc}</p>
@@ -173,7 +171,7 @@ export default function Landing() {
           <p className="text-slate-600 mb-12 text-base">Multiple income streams tracked in your dashboard and wallet.</p>
           <div className="grid sm:grid-cols-2 gap-5">
             {INCOME_TYPES.map((item) => (
-              <div key={item.title} className="flex gap-4 rounded-2xl bg-red-50 border border-red-100 p-5">
+              <div key={item.title} className="flex gap-4 rounded-2xl bg-brand-50 border border-brand-100 p-5">
                 <span className="text-3xl flex-shrink-0">{item.icon}</span>
                 <div>
                   <h3 className="font-bold text-slate-900 mb-1.5" style={{ fontFamily: 'var(--font-heading)' }}>{item.title}</h3>
@@ -202,13 +200,13 @@ export default function Landing() {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white border border-slate-200 px-5 py-4 shadow-sm"
               >
                 <div className="flex items-center gap-4">
-                  <span className="w-9 h-9 rounded-lg bg-red-700 flex items-center justify-center text-xs font-bold text-yellow-300">{i + 1}</span>
+                  <span className="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-xs font-bold text-amber-200">{i + 1}</span>
                   <div>
                     <p className="font-bold text-slate-900" style={{ fontFamily: 'var(--font-heading)' }}>{r.name}</p>
                     <p className="text-sm text-slate-500">{r.pairs.toLocaleString()} pairs required</p>
                   </div>
                 </div>
-                <p className="text-sm font-semibold text-red-800">{r.reward}</p>
+                <p className="text-sm font-semibold text-brand-800">{r.reward}</p>
               </div>
             ))}
           </div>
@@ -222,25 +220,25 @@ export default function Landing() {
           <div>
             <h2 className="text-3xl font-black text-slate-900 mb-4" style={{ fontFamily: 'var(--font-heading)' }}>16-month group plan</h2>
             <ul className="space-y-3 text-slate-700 text-base">
-              <li className="flex gap-3"><span className="text-red-600 font-bold">✓</span> ₹1,200 activation includes Month 1 installment</li>
-              <li className="flex gap-3"><span className="text-red-600 font-bold">✓</span> Pay monthly installments on time to stay eligible for lucky draws</li>
-              <li className="flex gap-3"><span className="text-red-600 font-bold">✓</span> Select booking, mid, deluxe & double-ID product tiers as you progress</li>
-              <li className="flex gap-3"><span className="text-red-600 font-bold">✓</span> Real-time tree view, wallet, income logs & reward collection in one app</li>
+              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> ₹1,200 activation includes Month 1 installment</li>
+              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Pay monthly installments on time to stay eligible for lucky draws</li>
+              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Select booking, mid, deluxe & double-ID product tiers as you progress</li>
+              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Real-time tree view, wallet, income logs & reward collection in one app</li>
             </ul>
           </div>
           <div
             className="rounded-3xl p-8 text-white shadow-xl"
-            style={{ background: 'linear-gradient(145deg, #991B1B 0%, #DC2626 100%)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
-            <p className="text-red-100 text-sm font-semibold uppercase tracking-wider mb-2">Ready to start?</p>
+            <p className="text-orange-100 text-sm font-semibold uppercase tracking-wider mb-2">Ready to start?</p>
             <p className="text-2xl font-black text-white mb-6 leading-snug" style={{ fontFamily: 'var(--font-heading)' }}>
               You need a sponsor referral code to register.
             </p>
-            <Link to="/register" className="btn-primary w-full justify-center py-3 text-base bg-yellow-400 !text-red-900 hover:!bg-yellow-300">
+            <Link to="/register" className="btn-primary w-full justify-center py-3 text-base bg-amber-400 !text-brand-900 hover:!bg-amber-300">
               Create your account →
             </Link>
-            <p className="text-center text-red-100 text-sm mt-4">
-              Already a member? <Link to="/login" className="text-yellow-300 font-semibold hover:underline">Sign in</Link>
+            <p className="text-center text-orange-100 text-sm mt-4">
+              Already a member? <Link to="/login" className="text-amber-300 font-semibold hover:underline">Sign in</Link>
             </p>
           </div>
         </div>
@@ -251,8 +249,8 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-8">
           <div>
             <h2 className="text-xl font-black text-slate-900 mb-2" style={{ fontFamily: 'var(--font-heading)' }}>Samriddhi Network</h2>
-            <p className="text-slate-600 text-base">Opp. General Bus Stand, B.C. Road, Jammu</p>
-            <a href="tel:9419185768" className="text-red-700 font-bold text-lg mt-2 inline-block hover:underline">9419185768</a>
+            <p className="text-slate-600 text-base mb-4">{CONTACT.address}</p>
+            <ContactInfo />
           </div>
           <div className="flex flex-wrap gap-3">
             <Link to="/login" className="btn-secondary text-sm py-2.5 px-6">Login</Link>

@@ -154,7 +154,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 card-flat">
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <h2 className="font-bold text-slate-800" style={{ fontFamily: 'var(--font-heading)' }}>Recent Transactions</h2>
-            <Link to="/wallet" className="text-red-700 text-xs font-semibold hover:underline">View all →</Link>
+            <Link to="/wallet" className="text-brand-600 text-xs font-semibold hover:underline">View all →</Link>
           </div>
 
           {!recentTransactions?.length ? (

@@ -52,10 +52,10 @@ export default function Wallet() {
 
       {/* Balance hero card */}
       <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl"
-        style={{ background: 'linear-gradient(135deg, #991B1B 0%, #B91C1C 50%, #DC2626 100%)' }}>
+        style={{ background: 'var(--brand-gradient)' }}>
         <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-white/5" />
         <div className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full bg-white/5" />
-        <p className="text-red-200 text-xs font-semibold uppercase tracking-wider">Available Balance</p>
+        <p className="text-orange-200 text-xs font-semibold uppercase tracking-wider">Available Balance</p>
         <p className="text-5xl font-black mt-1 mb-5" style={{ fontFamily: 'var(--font-heading)' }}>
           ₹{parseFloat(walletData.balance).toLocaleString('en-IN')}
         </p>

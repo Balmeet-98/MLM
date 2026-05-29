@@ -44,7 +44,7 @@ export default function Rewards() {
             onClick={() => setTab(key)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               tab === key
-                ? 'bg-white text-red-700 shadow-sm'
+                ? 'bg-white text-brand-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >

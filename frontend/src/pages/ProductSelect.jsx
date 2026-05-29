@@ -79,7 +79,7 @@ export default function ProductSelect() {
             onClick={() => setActiveTier(key)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               activeTier === key
-                ? 'bg-white text-red-700 shadow-sm'
+                ? 'bg-white text-brand-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -116,7 +116,7 @@ export default function ProductSelect() {
                 {CATEGORY_ICON[product.category] || '📦'}
               </div>
               <h3 className="font-bold text-slate-800">{product.name}</h3>
-              <p className="text-red-700 font-black text-xl mt-1" style={{ fontFamily: 'var(--font-heading)' }}>
+              <p className="text-brand-600 font-black text-xl mt-1" style={{ fontFamily: 'var(--font-heading)' }}>
                 ₹{parseFloat(product.price).toLocaleString('en-IN')}
               </p>
               <p className="text-xs text-slate-400 capitalize mb-4">{product.category}</p>

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Logo from '../brand/Logo';
 
 const userNav = [
   {
@@ -165,47 +166,41 @@ export default function Sidebar({ onClose }) {
   return (
     <aside
       style={{ width: 'var(--sidebar-w)', minHeight: '100%' }}
-      className="flex flex-col bg-red-800 text-white"
+      className="flex flex-col bg-brand-800 text-white"
     >
       {/* Logo header */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-red-700/50">
-        <div className="w-9 h-9 rounded-xl bg-yellow-400 flex items-center justify-center shadow-sm flex-shrink-0">
-          <span className="text-red-800 font-extrabold text-base leading-none" style={{ fontFamily: 'var(--font-heading)' }}>S</span>
-        </div>
-        <div className="min-w-0">
-          <p className="font-bold text-[13px] text-white leading-tight" style={{ fontFamily: 'var(--font-heading)' }}>Samriddhi</p>
-          <p className="text-yellow-300 text-[11px] leading-tight">Network</p>
-        </div>
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-brand-700/50">
+        <Logo size="sm" to="/" light className="flex-1 min-w-0" />
         {/* Close button — mobile only */}
         <button
           onClick={onClose}
-          className="ml-auto lg:hidden p-1 rounded-lg hover:bg-red-700 transition-colors"
+          className="ml-auto lg:hidden p-1 rounded-lg hover:bg-brand-700 transition-colors flex-shrink-0"
           aria-label="Close sidebar"
         >
-          <svg className="w-4 h-4 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
       {/* User card */}
-      <div className="mx-3 mt-3 mb-1 rounded-xl bg-red-700/40 px-3 py-3">
+      <div className="mx-3 mt-3 mb-1 rounded-xl bg-brand-700/40 px-3 py-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-red-800 font-bold text-sm">{user?.name?.charAt(0)?.toUpperCase()}</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-brand-900 font-bold text-sm">{user?.name?.charAt(0)?.toUpperCase()}</span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-semibold text-white truncate leading-tight">{user?.name}</p>
-            <p className="text-[11px] text-red-300 truncate">{isAdmin ? 'Administrator' : user?.referralCode}</p>
+            <p className="text-[11px] text-orange-200 truncate">{isAdmin ? 'Administrator' : user?.referralCode}</p>
           </div>
           {isAdmin && (
-            <span className="text-[10px] font-bold bg-yellow-400 text-red-800 px-1.5 py-0.5 rounded-md flex-shrink-0">ADMIN</span>
+            <span className="text-[10px] font-bold bg-amber-400 text-brand-900 px-1.5 py-0.5 rounded-md flex-shrink-0">ADMIN</span>
           )}
         </div>
       </div>
 
       {/* Nav label */}
-      <p className="px-5 pt-3 pb-1 text-[10px] font-bold text-red-400 uppercase tracking-widest">
+      <p className="px-5 pt-3 pb-1 text-[10px] font-bold text-orange-300 uppercase tracking-widest">
         {isAdmin ? 'Management' : 'Navigation'}
       </p>
 
@@ -219,8 +214,8 @@ export default function Sidebar({ onClose }) {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-yellow-400 text-red-800 shadow-sm'
-                  : 'text-red-100 hover:bg-red-700/60 hover:text-white'
+                  ? 'bg-amber-400 text-brand-900 shadow-sm'
+                  : 'text-orange-100 hover:bg-brand-700/60 hover:text-white'
               }`
             }
           >
@@ -231,10 +226,10 @@ export default function Sidebar({ onClose }) {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 pb-4 pt-2 border-t border-red-700/50 mt-auto">
+      <div className="px-3 pb-4 pt-2 border-t border-brand-700/50 mt-auto">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-300 hover:bg-red-700/60 hover:text-white transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-orange-200 hover:bg-brand-700/60 hover:text-white transition-all duration-150"
         >
           <svg className="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

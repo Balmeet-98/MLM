@@ -88,7 +88,7 @@ export default function PairNotifications({ pairInsights, compact = false }) {
       {!compact && (
         <p className="text-xs text-slate-500">
           Share your referral code from{' '}
-          <Link to="/tree" className="text-red-700 font-semibold hover:underline">My Tree</Link>
+          <Link to="/tree" className="text-brand-600 font-semibold hover:underline">My Tree</Link>
           {' '}— every new active member can grow your pairs toward rank rewards.
         </p>
       )}

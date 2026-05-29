@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import ContactInfo, { CONTACT } from '../brand/ContactInfo';
 
 export default function Layout({ adminOnly = false }) {
   const { isAuthenticated, user } = useAuth();
@@ -52,7 +53,7 @@ export default function Layout({ adminOnly = false }) {
               <span className="text-sm font-semibold text-slate-800 leading-none">{user?.name}</span>
               <span className="text-xs text-slate-400 mt-0.5">{user?.role === 'admin' ? 'Administrator' : user?.referralCode}</span>
             </div>
-            <div className="w-9 h-9 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
+            <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-800 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
               {user?.name?.charAt(0)?.toUpperCase()}
             </div>
           </div>
@@ -65,7 +66,8 @@ export default function Layout({ adminOnly = false }) {
 
         {/* Footer */}
         <footer className="app-footer">
-          Samriddhi Network &nbsp;·&nbsp; 9419185768 &nbsp;·&nbsp; samriddhinetwork349@gmail.com &nbsp;·&nbsp; Opp. General Bus Stand, B.C. Road, Jammu
+          <p className="m-0 mb-1 font-medium text-slate-600">Samriddhi Network · {CONTACT.address}</p>
+          <ContactInfo variant="inline" className="justify-center text-xs" />
         </footer>
       </div>
     </div>

@@ -78,7 +78,7 @@ export default function AdminWithdrawals() {
                       <p className="font-semibold text-slate-800">{w.users?.name}</p>
                       <p className="text-xs text-slate-400">{w.users?.phone}</p>
                     </td>
-                    <td className="font-black text-red-700 text-base">
+                    <td className="font-black text-brand-600 text-base">
                       ₹{parseFloat(w.amount).toLocaleString('en-IN')}
                     </td>
                     <td className="text-slate-600">{w.bank_name}</td>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import Logo from '../../components/brand/Logo';
+import ContactInfo from '../../components/brand/ContactInfo';
 
 export default function Login() {
   const { login, loading } = useAuth();
@@ -31,21 +33,15 @@ export default function Login() {
       {/* Left decorative panel — hidden on mobile */}
       <div
         className="hidden lg:flex lg:flex-col lg:justify-between lg:w-2/5 xl:w-1/2 p-12"
-        style={{ background: 'linear-gradient(155deg, #991B1B 0%, #B91C1C 45%, #DC2626 100%)' }}
+        style={{ background: 'var(--brand-gradient)' }}
       >
-        <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center font-black text-red-800 text-lg">S</div>
-          <div>
-            <p className="font-bold text-white text-sm" style={{ fontFamily: 'var(--font-heading)' }}>Samriddhi</p>
-            <p className="text-yellow-300 text-xs">Network</p>
-          </div>
-        </Link>
+        <Logo size="md" light />
 
         <div>
           <h2 className="text-4xl font-black text-white leading-tight mb-4" style={{ fontFamily: 'var(--font-heading)' }}>
             Build Your<br />Network.<br />Earn Rewards.
           </h2>
-          <p className="text-red-200 text-sm leading-relaxed">
+          <p className="text-orange-100 text-sm leading-relaxed">
             Join thousands of distributors who are building their future with Samriddhi Network's
             unlimited-width referral system.
           </p>
@@ -57,30 +53,22 @@ export default function Login() {
               { label: 'Income Paid', value: '₹50L+' },
               { label: 'Rewards Given', value: '1,000+' },
             ].map(s => (
-              <div key={s.label} className="bg-red-700/40 rounded-xl p-3 text-center">
-                <p className="text-xl font-black text-yellow-300" style={{ fontFamily: 'var(--font-heading)' }}>{s.value}</p>
-                <p className="text-xs text-red-200 mt-0.5">{s.label}</p>
+              <div key={s.label} className="bg-brand-700/40 rounded-xl p-3 text-center">
+                <p className="text-xl font-black text-amber-300" style={{ fontFamily: 'var(--font-heading)' }}>{s.value}</p>
+                <p className="text-xs text-orange-100 mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-red-300 text-xs">
-          Opp. General Bus Stand, B.C. Road, Jammu &nbsp;·&nbsp; 9419185768
-        </p>
+        <ContactInfo variant="compact" light />
       </div>
 
       {/* Right login panel */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
         {/* Mobile logo */}
-        <div className="lg:hidden text-center mb-8">
-          <Link to="/" className="inline-block">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-700 rounded-2xl mb-3 shadow-lg">
-              <span className="text-yellow-400 font-black text-2xl">S</span>
-            </div>
-            <h1 className="text-2xl font-black text-slate-900" style={{ fontFamily: 'var(--font-heading)' }}>Samriddhi Network</h1>
-            <p className="text-slate-500 text-sm mt-1">Sales Promotion with Exciting Rewards</p>
-          </Link>
+        <div className="lg:hidden mb-8 flex justify-center">
+          <Logo size="lg" subtitle="Sales Promotion with Exciting Rewards" />
         </div>
 
         <div className="w-full max-w-sm">
@@ -142,7 +130,7 @@ export default function Login() {
           </p>
           <p className="text-center text-sm text-slate-500 mt-4">
             New member?{' '}
-            <Link to="/register" className="text-red-700 font-semibold hover:underline">
+            <Link to="/register" className="text-brand-600 font-semibold hover:underline">
               Create account
             </Link>
           </p>

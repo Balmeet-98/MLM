@@ -48,7 +48,7 @@ export default function Installments() {
           <p className="text-3xl font-black mt-0.5" style={{ fontFamily: 'var(--font-heading)' }}>{paidCount}<span className="text-lg font-semibold text-emerald-200">/16</span></p>
         </div>
         <div className={`rounded-2xl p-4 text-white shadow-md ${data.consecutiveMissed >= 3
-          ? 'bg-gradient-to-br from-red-600 to-red-700'
+          ? 'bg-gradient-to-br from-brand-600 to-brand-700'
           : 'bg-gradient-to-br from-slate-500 to-slate-600'}`}>
           <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Consecutive Missed</p>
           <p className="text-3xl font-black mt-0.5" style={{ fontFamily: 'var(--font-heading)' }}>{data.consecutiveMissed}</p>
@@ -67,7 +67,7 @@ export default function Installments() {
           <span className="text-sm font-bold text-slate-800">{progress}%</span>
         </div>
         <div className="progress-wrap h-3">
-          <div className="progress-bar bg-gradient-to-r from-red-600 to-red-500" style={{ width: `${progress}%` }} />
+          <div className="progress-bar bg-gradient-to-r from-brand-600 to-brand-500" style={{ width: `${progress}%` }} />
         </div>
         <p className="text-xs text-slate-400 mt-2">100% payment required to be eligible for all rewards</p>
       </div>
@@ -105,7 +105,7 @@ export default function Installments() {
                   <button
                     onClick={() => handlePay(inst.month_number)}
                     disabled={paying === inst.month_number}
-                    className="mt-2 w-full bg-red-700 hover:bg-red-800 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                    className="mt-2 w-full bg-brand-600 hover:bg-brand-700 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors disabled:opacity-60"
                   >
                     {paying === inst.month_number ? '…' : 'Pay ₹1,200'}
                   </button>

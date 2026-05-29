@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import Logo from '../../components/brand/Logo';
+import ContactInfo from '../../components/brand/ContactInfo';
 
 const ACTIVATION_AMOUNT = 1200;
 
@@ -58,7 +60,7 @@ export default function Register() {
           email: form.email,
           contact: form.phone,
         },
-        theme: { color: '#B91C1C' },
+        theme: { color: '#EA580C' },
         handler: async (paymentResponse) => {
           try {
             // Payment succeeded — create account
@@ -104,18 +106,9 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50">
-      {/* Logo */}
-      <Link to="/" className="flex items-center gap-3 mb-8 hover:opacity-90 transition-opacity">
-        <div className="w-11 h-11 bg-red-700 rounded-xl flex items-center justify-center shadow-md">
-          <span className="text-yellow-400 font-black text-xl">S</span>
-        </div>
-        <div>
-          <p className="font-black text-slate-900 text-lg leading-none" style={{ fontFamily: 'var(--font-heading)' }}>
-            Samriddhi Network
-          </p>
-          <p className="text-slate-400 text-xs">Join the TEAMWORK family</p>
-        </div>
-      </Link>
+      <div className="mb-8">
+        <Logo size="lg" subtitle="Join the TEAMWORK family" />
+      </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-6">
@@ -123,7 +116,7 @@ export default function Register() {
           <div key={s} className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
               s < step ? 'bg-emerald-500 text-white' :
-              s === step ? 'bg-red-700 text-white' :
+              s === step ? 'bg-brand-600 text-white' :
               'bg-slate-200 text-slate-400'
             }`}>
               {s < step ? '✓' : s}
@@ -264,7 +257,7 @@ export default function Register() {
               </div>
               <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
                 <span className="text-slate-600 font-semibold">Month 1 of 16</span>
-                <span className="text-2xl font-black text-red-700" style={{ fontFamily: 'var(--font-heading)' }}>
+                <span className="text-2xl font-black text-brand-600" style={{ fontFamily: 'var(--font-heading)' }}>
                   ₹{ACTIVATION_AMOUNT.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -300,12 +293,13 @@ export default function Register() {
           </>
         )}
 
+        <ContactInfo variant="inline" className="justify-center mt-8 mb-2" />
         <p className="text-center text-sm text-slate-500 mt-4">
           <Link to="/" className="text-slate-400 hover:text-slate-600">← Back to home</Link>
         </p>
         <p className="text-center text-sm text-slate-500 mt-4">
           Already a member?{' '}
-          <Link to="/login" className="text-red-700 font-semibold hover:underline">Sign in</Link>
+          <Link to="/login" className="text-brand-600 font-semibold hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

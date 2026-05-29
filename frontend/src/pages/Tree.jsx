@@ -10,7 +10,7 @@ const NodeLabel = ({ nodeData }) => {
   return (
     <div className={`px-3 py-2 rounded-lg text-center text-xs shadow-md border-2 min-w-[80px] ${
       isActive ? 'bg-white border-red-500 text-gray-800'
-      : 'bg-red-50 border-red-300 text-red-700'
+      : 'bg-brand-50 border-brand-300 text-brand-700'
     }`}>
       <p className="font-bold truncate max-w-[80px]">{nodeData.name}</p>
       {nodeData.attributes?.referralCode && (
@@ -62,7 +62,7 @@ export default function TreePage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-10 h-10 border-4 border-red-700 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : !treeData ? (
         <div className="card text-center py-12 text-gray-500">No tree data available</div>

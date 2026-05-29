@@ -1,5 +1,5 @@
 const gradients = {
-  red:    'from-red-600 to-red-700',
+  red:    'from-brand-600 to-brand-700',
   green:  'from-emerald-500 to-emerald-600',
   blue:   'from-blue-500 to-blue-700',
   purple: 'from-violet-500 to-purple-700',
@@ -7,7 +7,7 @@ const gradients = {
 };
 
 const iconBgs = {
-  red:    'bg-red-500/30',
+  red:    'bg-brand-500/30',
   green:  'bg-emerald-400/30',
   blue:   'bg-blue-400/30',
   purple: 'bg-violet-400/30',

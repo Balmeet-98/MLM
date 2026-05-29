@@ -46,7 +46,7 @@ export default function AdminIncome() {
             onClick={() => setFilter(key)}
             className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
               filter === key
-                ? 'bg-red-700 text-white shadow-sm'
+                ? 'bg-brand-600 text-white shadow-sm'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
