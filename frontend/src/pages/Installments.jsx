@@ -123,7 +123,7 @@ export default function Installments() {
         </p>
         <ul className="space-y-1.5 text-xs text-amber-700">
           {[
-            'Installment payment window: 1st to 20th of each month',
+            'Installment payment window: 1st to 10th of each month',
             '100% payment compliance required to qualify for all rewards',
             '4 consecutive missed installments results in ID cancellation',
             'Rewards are released only after your 2nd installment is received',

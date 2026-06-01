@@ -7,11 +7,9 @@ import toast from 'react-hot-toast';
 const actions = [
   { to: '/admin/users',       icon: '👥', label: 'Manage Members',  bg: 'bg-blue-50',   hover: 'hover:bg-blue-100' },
   { to: '/admin/withdrawals', icon: '💸', label: 'Withdrawals',     bg: 'bg-red-50',    hover: 'hover:bg-red-100' },
-  { to: '/admin/lucky-draw',  icon: '🎰', label: 'Lucky Draw',      bg: 'bg-purple-50', hover: 'hover:bg-purple-100' },
   { to: '/admin/rewards',     icon: '🎁', label: 'Reward Pickup',   bg: 'bg-amber-50',  hover: 'hover:bg-amber-100' },
   { to: '/admin/pairs',       icon: '🤝', label: 'Pair Insights',   bg: 'bg-green-50',  hover: 'hover:bg-green-100' },
   // { to: '/admin/products',    icon: '📦', label: 'Products',        bg: 'bg-green-50',  hover: 'hover:bg-green-100' },
-  { to: '/admin/groups',      icon: '🗂️', label: 'Groups',          bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100' },
   { to: '/admin/income',      icon: '📈', label: 'Income Logs',     bg: 'bg-teal-50',   hover: 'hover:bg-teal-100' },
 ];
 
@@ -35,10 +33,10 @@ export default function AdminDashboard() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Members"       value={loading ? '…' : (stats?.totalUsers ?? 0)}         icon="👥" color="blue"   />
-        <StatCard title="Active Members"      value={loading ? '…' : (stats?.activeUsers ?? 0)}        icon="✅" color="green"  />
-        <StatCard title="Pending Withdrawals" value={loading ? '…' : (stats?.pendingWithdrawals ?? 0)} icon="💸" color="red"    />
-        <StatCard title="Pending Rewards"     value={loading ? '…' : (stats?.pendingRewards ?? 0)}     icon="🎁" color="yellow" />
+        <StatCard title="Total Members"       value={loading ? '…' : (stats?.totalUsers ?? 0)}         icon="👥" color="blue"   to="/admin/users" />
+        <StatCard title="Active Members"      value={loading ? '…' : (stats?.activeUsers ?? 0)}        icon="✅" color="green"  to="/admin/users?status=active" />
+        <StatCard title="Pending Withdrawals" value={loading ? '…' : (stats?.pendingWithdrawals ?? 0)} icon="💸" color="red"    to="/admin/withdrawals" />
+        <StatCard title="Pending Rewards"     value={loading ? '…' : (stats?.pendingRewards ?? 0)}     icon="🎁" color="yellow" to="/admin/rewards" />
       </div>
 
       {/* Total income paid highlight */}

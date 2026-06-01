@@ -207,13 +207,13 @@ Full schema: `backend/src/utils/schema.sql`
 | Schedule | Job | Description |
 |---|---|---|
 | 1st of every month, midnight | Monthly Rank Income | Credits rank-based monthly income to eligible members (4-Star Gold+) |
-| 21st of every month, midnight | Installment Check | Marks overdue installments as missed, cancels IDs after 4 consecutive misses |
+| 11th of every month, midnight | Installment Check | Marks overdue installments as missed, cancels IDs after 4 consecutive misses |
 
 ---
 
 ## Business Rules
 
-- Monthly installment: Rs.1,200 | Due: 1st–20th of each month
+- Monthly installment: Rs.1,200 | Due: 1st–10th of each month
 - Group size: 2,500 members | Duration: 16 months
 - 4 consecutive missed installments → ID auto-cancelled
 - 100% compliance required for any reward

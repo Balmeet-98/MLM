@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const gradients = {
   red:    'from-brand-600 to-brand-700',
   green:  'from-emerald-500 to-emerald-600',
@@ -14,12 +16,16 @@ const iconBgs = {
   yellow: 'bg-amber-300/30',
 };
 
-export default function StatCard({ title, value, subtitle, icon, color = 'red', trend }) {
+export default function StatCard({ title, value, subtitle, icon, color = 'red', trend, to }) {
   const grad = gradients[color] || gradients.red;
   const ibg  = iconBgs[color]   || iconBgs.red;
 
-  return (
-    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${grad} p-5 text-white shadow-lg hover:shadow-xl transition-shadow`}>
+  const card = (
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${grad} p-5 text-white shadow-lg transition-all ${
+        to ? 'hover:shadow-xl hover:scale-[1.02] cursor-pointer' : 'hover:shadow-xl'
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1 truncate">{title}</p>
@@ -41,4 +47,18 @@ export default function StatCard({ title, value, subtitle, icon, color = 'red', 
       <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-white/5" />
     </div>
   );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+        aria-label={`${title}: ${value}`}
+      >
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }

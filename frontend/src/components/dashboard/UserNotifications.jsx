@@ -2,14 +2,12 @@ import { format } from 'date-fns';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
-const TYPE_STYLE = {
-  lucky_draw_scheduled: {
-    icon: '🎰',
-    border: 'border-purple-300',
-    bg: 'bg-purple-50',
-    badge: 'bg-purple-600 text-white',
-    label: 'Lucky draw',
-  },
+const DEFAULT_STYLE = {
+  icon: '🔔',
+  border: 'border-slate-300',
+  bg: 'bg-slate-50',
+  badge: 'bg-slate-600 text-white',
+  label: 'Notice',
 };
 
 export default function UserNotifications({ notifications = [], unreadCount = 0, onRefresh }) {
@@ -53,7 +51,7 @@ export default function UserNotifications({ notifications = [], unreadCount = 0,
 
       <div className="space-y-2">
         {notifications.map((n) => {
-          const style = TYPE_STYLE[n.type] || TYPE_STYLE.lucky_draw_scheduled;
+          const style = DEFAULT_STYLE;
           const unread = !n.read_at;
           return (
             <div

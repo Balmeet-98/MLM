@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS user_rewards (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   reward_name VARCHAR(200) NOT NULL,
-  reward_type VARCHAR(20) CHECK (reward_type IN ('rank_milestone', 'lucky_draw')),
+  reward_type VARCHAR(20) CHECK (reward_type IN ('rank_milestone')),
   rank_id UUID REFERENCES ranks(id) ON DELETE SET NULL,
   status VARCHAR(30) DEFAULT 'pending_collection' CHECK (status IN ('pending_collection', 'collected')),
   id_proof_verified BOOLEAN DEFAULT FALSE,

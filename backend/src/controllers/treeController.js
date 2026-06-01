@@ -13,6 +13,13 @@ const getMyTree = async (req, res, next) => {
 const getUserTree = async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const isAdmin = req.user.role === 'admin';
+    const isSelf = req.user.id === userId;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ error: 'You can only view your own network tree' });
+    }
+
     const tree = await getSubtree(userId);
     res.json({ tree });
   } catch (err) {

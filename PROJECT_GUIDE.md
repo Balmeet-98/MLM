@@ -362,7 +362,7 @@ When eligible:
 
 - **16 months**, **₹1,200** each
 - Created on registration (`installmentService.createInstallmentSchedule`)
-- Due date: **20th** of each month
+- Due date: **10th** of each month
 - Month 1 marked **paid** at registration
 
 ### Payment
@@ -373,7 +373,7 @@ When eligible:
 
 ### Missed installments (cron)
 
-**Schedule:** 21st of every month (`cronJobs.js`)
+**Schedule:** 11th of every month (`cronJobs.js`)
 
 1. Find `installments` with `status: pending` and `due_date` passed
 2. Mark as `missed`
@@ -639,7 +639,7 @@ Started when backend boots (`server.js` → `startCronJobs()`).
 | Schedule | Job | Function |
 |----------|-----|----------|
 | `0 0 1 * *` (1st of month, midnight) | Monthly rank income | `creditMonthlyRankIncome()` |
-| `0 0 21 * *` (21st of month, midnight) | Missed installment check | `checkMissedInstallments()` |
+| `0 0 11 * *` (11th of month, midnight) | Missed installment check | `checkMissedInstallments()` |
 
 ---
 
@@ -753,7 +753,7 @@ If `NODE_ENV=production`, `server.js` can also serve `frontend/dist` as static f
 | Rule | Value |
 |------|-------|
 | Monthly installment | ₹1,200 |
-| Due date | 1st–20th of each month |
+| Due date | 1st–10th of each month |
 | Group size | Up to 2,500 members |
 | Cycle length | 16 months |
 | Missed installments before cancel | 4 consecutive |

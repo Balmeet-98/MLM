@@ -29,7 +29,6 @@ const FEATURES = [
   { icon: '🌳', title: 'Unlimited-width tree', desc: 'No left/right limit — sponsor as many direct members as you want.' },
   { icon: '💳', title: 'Digital wallet', desc: 'All earnings credited to your wallet. Request withdrawals anytime.' },
   { icon: '🎁', title: 'Product rewards', desc: 'Choose appliances, electronics & more through our product catalog tiers.' },
-  { icon: '🎰', title: 'Lucky draws', desc: '16-month group cycle with monthly lucky draws for compliant members.' },
 ];
 
 export default function Landing() {
@@ -218,10 +217,10 @@ export default function Landing() {
       <section className="py-20 px-4 sm:px-6 bg-white border-t border-slate-200">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 mb-4" style={{ fontFamily: 'var(--font-heading)' }}>16-month group plan</h2>
+            <h2 className="text-3xl font-black text-slate-900 mb-4" style={{ fontFamily: 'var(--font-heading)' }}>16-month installment plan</h2>
             <ul className="space-y-3 text-slate-700 text-base">
               <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> ₹1,200 activation includes Month 1 installment</li>
-              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Pay monthly installments on time to stay eligible for lucky draws</li>
+              <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Pay monthly installments on time to keep your ID active</li>
               <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Select booking, mid, deluxe & double-ID product tiers as you progress</li>
               <li className="flex gap-3"><span className="text-brand-600 font-bold">✓</span> Real-time tree view, wallet, income logs & reward collection in one app</li>
             </ul>

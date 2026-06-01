@@ -266,7 +266,7 @@ export default function Register() {
             {/* Info note */}
             <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 mb-6 text-xs text-amber-700">
               After paying ₹1,200 today, you will need to pay ₹1,200/month for the remaining 15 months.
-              Payments are due by the 20th of each month.
+              Payments are due by the 10th of each month.
             </div>
 
             <button

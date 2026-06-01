@@ -9,7 +9,10 @@ export default function AdminRewards() {
   const [marking, setMarking] = useState(null);
 
   const fetchData = async () => {
-    try { const { data } = await api.get('/admin/rewards/pending'); setRewards(data.rewards); }
+    try {
+      const { data } = await api.get('/admin/rewards/pending');
+      setRewards((data.rewards || []).filter((r) => r.reward_type !== 'lucky_draw'));
+    }
     catch { toast.error('Failed to load'); }
     finally { setLoading(false); }
   };

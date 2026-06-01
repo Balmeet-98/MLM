@@ -13,8 +13,8 @@ const startCronJobs = () => {
     }
   });
 
-  // 21st of every month at midnight — check missed installments (due date was 20th)
-  cron.schedule('0 0 21 * *', async () => {
+  // 11th of every month at midnight — check missed installments (due date is 10th)
+  cron.schedule('0 0 11 * *', async () => {
     console.log('[CRON] Checking missed installments...');
     try {
       await checkMissedInstallments();
@@ -23,7 +23,7 @@ const startCronJobs = () => {
     }
   });
 
-  console.log('[CRON] Cron jobs scheduled: monthly-income (1st) + installment-check (21st)');
+  console.log('[CRON] Cron jobs scheduled: monthly-income (1st) + installment-check (11th)');
 };
 
 module.exports = { startCronJobs };

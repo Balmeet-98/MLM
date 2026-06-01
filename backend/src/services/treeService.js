@@ -1,30 +1,71 @@
 const supabase = require('../config/supabase');
 
 /**
- * Place a new user directly under their sponsor (unlimited width).
+ * Ensure parent exists and is valid for placing newUserId beneath them.
  */
-const placeInTree = async (newUserId, sponsorId) => {
-  const { data: sponsorNode } = await supabase
-    .from('tree_nodes')
-    .select('user_id')
-    .eq('user_id', sponsorId)
+const validateTreeParent = async (newUserId, parentId) => {
+  if (!parentId) throw new Error('Tree parent is required');
+  if (newUserId && newUserId === parentId) {
+    throw new Error('Cannot place a member under themselves');
+  }
+
+  const { data: parent } = await supabase
+    .from('users')
+    .select('id, is_active, role')
+    .eq('id', parentId)
     .single();
 
-  if (!sponsorNode) {
-    await supabase.from('tree_nodes').insert({ user_id: sponsorId });
+  if (!parent) throw new Error('Tree parent not found');
+  if (!parent.is_active && parent.role !== 'admin') {
+    throw new Error('Tree parent must be an active member');
+  }
+
+  if (newUserId) {
+    let currentId = parentId;
+    for (let i = 0; i < 50; i++) {
+      if (currentId === newUserId) {
+        throw new Error('Invalid placement: would create a cycle in the tree');
+      }
+      const { data: node } = await supabase
+        .from('tree_nodes')
+        .select('parent_id')
+        .eq('user_id', currentId)
+        .single();
+      if (!node?.parent_id) break;
+      currentId = node.parent_id;
+    }
+  }
+
+  return parentId;
+};
+
+/**
+ * Place a new user under parentId (unlimited width n-ary tree).
+ */
+const placeInTree = async (newUserId, parentId) => {
+  await validateTreeParent(newUserId, parentId);
+
+  const { data: parentNode } = await supabase
+    .from('tree_nodes')
+    .select('user_id')
+    .eq('user_id', parentId)
+    .single();
+
+  if (!parentNode) {
+    await supabase.from('tree_nodes').insert({ user_id: parentId });
   }
 
   await supabase.from('tree_edges').insert({
-    parent_user_id: sponsorId,
+    parent_user_id: parentId,
     child_user_id: newUserId,
   });
 
   await supabase.from('tree_nodes').insert({
     user_id: newUserId,
-    parent_id: sponsorId,
+    parent_id: parentId,
   });
 
-  return sponsorId;
+  return parentId;
 };
 
 /**
@@ -201,6 +242,7 @@ const walkParentChain = async (userId, maxLevels = 10) => {
 
 module.exports = {
   placeInTree,
+  validateTreeParent,
   createRootNode,
   getDirectChildren,
   getSubtree,

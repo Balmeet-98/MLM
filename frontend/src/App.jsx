@@ -19,8 +19,6 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 // import AdminProducts from './pages/admin/AdminProducts';
 import AdminPairs from './pages/admin/AdminPairs';
-import AdminGroups from './pages/admin/AdminGroups';
-import AdminLuckyDraw from './pages/admin/AdminLuckyDraw';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminRewards from './pages/admin/AdminRewards';
 import AdminIncome from './pages/admin/AdminIncome';
@@ -55,8 +53,6 @@ export default function App() {
               <Route path="/admin/users/:userId/tree" element={<Tree />} />
               <Route path="/admin/pairs" element={<AdminPairs />} />
               {/* <Route path="/admin/products" element={<AdminProducts />} /> */}
-              <Route path="/admin/groups" element={<AdminGroups />} />
-              <Route path="/admin/lucky-draw" element={<AdminLuckyDraw />} />
               <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
               <Route path="/admin/rewards" element={<AdminRewards />} />
               <Route path="/admin/income" element={<AdminIncome />} />

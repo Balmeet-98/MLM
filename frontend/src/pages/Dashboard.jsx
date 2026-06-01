@@ -35,8 +35,6 @@ export default function Dashboard() {
     currentRank, totalIncome, rewardsCount, nextInstallment, recentTransactions,
   } = data || {};
   const hotAlerts = pairInsights?.notifications?.filter((n) => n.priority === 'urgent' || n.priority === 'high')?.length || 0;
-  const luckyDrawAlerts = notifications?.filter((n) => n.type === 'lucky_draw_scheduled' && !n.read_at) || [];
-
   const installmentDue = nextInstallment?.status === 'pending';
   const daysUntilDue = nextInstallment
     ? Math.ceil((new Date(nextInstallment.due_date) - new Date()) / (1000 * 60 * 60 * 24))
@@ -67,8 +65,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Lucky draw & system notifications ── */}
-      {(notifications?.length > 0 || luckyDrawAlerts.length > 0) && (
+      {notifications?.length > 0 && (
         <div className="card border-2 border-purple-200">
           <UserNotifications
             notifications={notifications}

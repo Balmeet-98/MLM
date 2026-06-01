@@ -19,6 +19,7 @@ export default function Rewards() {
   if (loading) return <div className="page-loader"><div className="spinner" /></div>;
 
   const { rewards, totalPairs, ranksProgress } = data;
+  const rankRewards = (rewards || []).filter((r) => r.reward_type !== 'lucky_draw');
   const achievedCount = ranksProgress.filter(r => r.achieved).length;
 
   return (
@@ -112,12 +113,12 @@ export default function Rewards() {
       {/* Earned Rewards */}
       {tab === 'earned' && (
         <div className="space-y-3">
-          {rewards.length === 0 ? (
+          {rankRewards.length === 0 ? (
             <div className="empty-state card">
               <div className="icon">🎁</div>
               <p className="text-slate-500">No rewards earned yet. Keep building your team!</p>
             </div>
-          ) : rewards.map(reward => (
+          ) : rankRewards.map(reward => (
             <div
               key={reward.id}
               className={`card border-2 flex flex-wrap items-center justify-between gap-3 ${

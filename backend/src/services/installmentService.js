@@ -1,7 +1,7 @@
 const supabase = require('../config/supabase');
 
 /**
- * Check all users for missed installments. Called by cron on 21st of each month.
+ * Check all users for missed installments. Called by cron on 11th of each month.
  * Marks unpaid installments as missed, increments counter, cancels ID at 4 consecutive.
  */
 const checkMissedInstallments = async () => {
@@ -69,7 +69,7 @@ const createInstallmentSchedule = async (userId, groupId) => {
   const installments = [];
 
   for (let month = 1; month <= 16; month++) {
-    const dueDate = new Date(now.getFullYear(), now.getMonth() + month - 1, 20);
+    const dueDate = new Date(now.getFullYear(), now.getMonth() + month - 1, 10);
     installments.push({
       user_id: userId,
       group_id: groupId,

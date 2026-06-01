@@ -47,31 +47,6 @@ const PRODUCTS = [
   { name: 'Split AC (1.5 Ton)',      price: 40000, tier: 'double_id', category: 'appliance'   },
 ];
 
-const REWARD_CATALOG = [
-  { month_range_start: 1,  month_range_end: 5,  reward_name: 'Water Purifier',           reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 1,  month_range_end: 5,  reward_name: 'Split AC',                 reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 1,  month_range_end: 5,  reward_name: 'TV LED',                   reward_category: 'electronics', quantity_per_draw: 1 },
-  { month_range_start: 1,  month_range_end: 5,  reward_name: 'Washing Machine',          reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 1,  month_range_end: 5,  reward_name: 'Cooler',                   reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'Motorcycle (HF Deluxe)',   reward_category: 'vehicle',     quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'Scooter (Activa)',         reward_category: 'vehicle',     quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'TV LED 43"',               reward_category: 'electronics', quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'Home Theater System',      reward_category: 'electronics', quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'Wardrobe / Almirah',       reward_category: 'furniture',   quantity_per_draw: 1 },
-  { month_range_start: 6,  month_range_end: 10, reward_name: 'Sofa Set',                 reward_category: 'furniture',   quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Washing Machine (Auto)',   reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Sofa Set',                 reward_category: 'furniture',   quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Bed Set',                  reward_category: 'furniture',   quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Motorcycle',               reward_category: 'vehicle',     quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Scooter',                  reward_category: 'vehicle',     quantity_per_draw: 1 },
-  { month_range_start: 11, month_range_end: 13, reward_name: 'Battery Inverter',         reward_category: 'appliance',   quantity_per_draw: 1 },
-  { month_range_start: 16, month_range_end: 16, reward_name: 'Split AC (1.5 Ton)',       reward_category: 'appliance',   quantity_per_draw: 7 },
-  { month_range_start: 16, month_range_end: 16, reward_name: 'LED TV 50"',               reward_category: 'electronics', quantity_per_draw: 7 },
-  { month_range_start: 16, month_range_end: 16, reward_name: 'HF Deluxe Bike',           reward_category: 'vehicle',     quantity_per_draw: 10 },
-  { month_range_start: 17, month_range_end: 17, reward_name: 'Royal Enfield Bullet Standard', reward_category: 'vehicle', quantity_per_draw: 1 },
-  { month_range_start: 17, month_range_end: 17, reward_name: 'Alto Car',                 reward_category: 'vehicle',     quantity_per_draw: 1 },
-];
-
 const seed = async () => {
   console.log('Starting seed...');
 
@@ -85,9 +60,25 @@ const seed = async () => {
   const { error: prodErr } = await supabase.from('products').insert(PRODUCTS);
   if (prodErr) console.log('Products may already exist:', prodErr.message);
 
-  console.log('Seeding reward catalog...');
-  const { error: rewErr } = await supabase.from('reward_catalog').insert(REWARD_CATALOG);
-  if (rewErr) console.log('Reward catalog may already exist:', rewErr.message);
+  console.log('Seeding default group...');
+  const { data: existingGroup } = await supabase
+    .from('groups')
+    .select('id')
+    .eq('status', 'active')
+    .limit(1)
+    .single();
+
+  if (!existingGroup) {
+    const { error: groupErr } = await supabase.from('groups').insert({
+      name: 'Samriddhi Network',
+      status: 'active',
+      max_members: 999999,
+      cycle_months: 16,
+      monthly_amount: 1200,
+    });
+    if (groupErr) console.log('Group seed error:', groupErr.message);
+    else console.log('Default group created');
+  }
 
   console.log('Creating default admin...');
   const passwordHash = await bcrypt.hash('Admin@123', 12);

@@ -2,7 +2,7 @@ const supabase = require('../config/supabase');
 const { creditWallet } = require('./walletService');
 const { getAncestors, getDirectChildren, countSubtreeSize } = require('./treeService');
 
-const DIRECT_INCOME = { 1: 400, 2: 300, 3: 100 };
+const DIRECT_INCOME = { 1: 400, 2: 200, 3: 100 };
 // Pairs count toward lifetime rank rewards only (no per-pair cash — see flyer)
 
 /**

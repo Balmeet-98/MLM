@@ -3,18 +3,7 @@ const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const supabase = require('../config/supabase');
 const { signToken } = require('../utils/jwt');
-const { placeInTree, createRootNode, walkParentChain } = require('../services/treeService');
-const { creditDirectIncome, updatePairsAndCredit } = require('../services/incomeService');
-const { createInstallmentSchedule } = require('../services/installmentService');
-const { checkAndAssignRanks } = require('../services/rewardService');
-
-const ACTIVATION_AMOUNT = 1200;
-
-const generateReferralCode = (name) => {
-  const prefix = name.replace(/\s+/g, '').substring(0, 3).toUpperCase();
-  const suffix = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `${prefix}${suffix}`;
-};
+const { createMember } = require('../services/memberService');
 
 /**
  * Verify Razorpay payment signature.
@@ -39,7 +28,6 @@ const register = async (req, res, next) => {
       razorpay_payment_id, razorpay_order_id, razorpay_signature,
     } = req.body;
 
-    // Verify Razorpay payment
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
       return res.status(400).json({ error: 'Payment details are required to register' });
     }
@@ -48,121 +36,32 @@ const register = async (req, res, next) => {
       return res.status(400).json({ error: 'Payment verification failed. Please try again.' });
     }
 
-    // Prevent duplicate payment use
-    const { data: existingPayment } = await supabase
-      .from('payments')
-      .select('id')
-      .eq('razorpay_payment_id', razorpay_payment_id)
-      .single();
-    if (existingPayment) {
-      return res.status(409).json({ error: 'This payment has already been used for registration.' });
-    }
-
-    // Check if email already exists
-    const { data: existing } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
-    if (existing) return res.status(409).json({ error: 'Email already registered' });
-
-    // Find sponsor
     let sponsorId = null;
     if (sponsorCode) {
       const { data: sponsor } = await supabase
         .from('users')
-        .select('id, group_id')
+        .select('id')
         .eq('referral_code', sponsorCode.toUpperCase())
         .single();
       if (!sponsor) return res.status(404).json({ error: 'Invalid sponsor referral code' });
       sponsorId = sponsor.id;
     }
 
-    // Determine group
-    let groupId = null;
-    if (sponsorId) {
-      const { data: sponsor } = await supabase
-        .from('users')
-        .select('group_id')
-        .eq('id', sponsorId)
-        .single();
-      groupId = sponsor?.group_id;
-    }
-    if (!groupId) {
-      const { data: activeGroup } = await supabase
-        .from('groups')
-        .select('id')
-        .eq('status', 'active')
-        .limit(1)
-        .single();
-      groupId = activeGroup?.id;
-    }
-
-    const passwordHash = await bcrypt.hash(password, 12);
-    const referralCode = generateReferralCode(name);
-
-    // Create user — already active since payment is verified
-    const { data: newUser, error: userErr } = await supabase
-      .from('users')
-      .insert({
-        name,
-        email,
-        password_hash: passwordHash,
-        phone,
-        referral_code: referralCode,
-        sponsor_id: sponsorId,
-        group_id: groupId,
-        is_active: true,
-      })
-      .select()
-      .single();
-
-    if (userErr) throw userErr;
-
-    // Record payment
-    await supabase.from('payments').insert({
-      user_id: newUser.id,
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      amount: ACTIVATION_AMOUNT,
-      status: 'captured',
+    const newUser = await createMember({
+      name,
+      email,
+      password,
+      phone,
+      sponsorId,
+      parentUserId: sponsorId,
+      paymentMode: 'razorpay',
+      razorpay: {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+      },
+      markActivationPaid: true,
     });
-
-    // Create wallet
-    await supabase.from('wallets').insert({ user_id: newUser.id, balance: 0 });
-
-    // Place in network tree
-    if (sponsorId) {
-      await placeInTree(newUser.id, sponsorId);
-    } else {
-      await createRootNode(newUser.id);
-    }
-
-    // Create 16-month installment schedule and mark Month 1 as paid
-    if (groupId) {
-      await createInstallmentSchedule(newUser.id, groupId);
-
-      await supabase
-        .from('installments')
-        .update({
-          status: 'paid',
-          paid_date: new Date().toISOString(),
-        })
-        .eq('user_id', newUser.id)
-        .eq('group_id', groupId)
-        .eq('month_number', 1);
-    }
-
-    // Credit direct income to upline (L1=₹400, L2=₹200, L3=₹100)
-    await creditDirectIncome(newUser.id);
-
-    // Update pair counts up the tree
-    const parentChain = await walkParentChain(newUser.id);
-    for (const parentId of parentChain) {
-      await updatePairsAndCredit(parentId);
-      await checkAndAssignRanks(parentId);
-    }
 
     const token = signToken({ id: newUser.id, role: newUser.role });
 
@@ -179,6 +78,7 @@ const register = async (req, res, next) => {
       },
     });
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     next(err);
   }
 };
