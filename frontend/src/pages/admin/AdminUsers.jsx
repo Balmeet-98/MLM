@@ -10,7 +10,6 @@ const emptyForm = {
   phone: '',
   password: '',
   sponsorId: '',
-  parentUserId: '',
 };
 
 function MemberSelect({ label, value, onChange, options, hint }) {
@@ -48,7 +47,6 @@ export default function AdminUsers() {
   const [showAdd, setShowAdd] = useState(false);
   const [memberOptions, setMemberOptions] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [parentTouched, setParentTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [createdUser, setCreatedUser] = useState(null);
 
@@ -86,7 +84,6 @@ export default function AdminUsers() {
 
   const openAddModal = () => {
     setForm(emptyForm);
-    setParentTouched(false);
     setCreatedUser(null);
     setShowAdd(true);
     loadMemberOptions();
@@ -96,14 +93,6 @@ export default function AdminUsers() {
     setShowAdd(false);
     setForm(emptyForm);
     setCreatedUser(null);
-  };
-
-  const setSponsorId = (sponsorId) => {
-    setForm((prev) => ({
-      ...prev,
-      sponsorId,
-      parentUserId: parentTouched ? prev.parentUserId : sponsorId,
-    }));
   };
 
   const handleSubmit = async (e) => {
@@ -116,7 +105,6 @@ export default function AdminUsers() {
         phone: form.phone || undefined,
         password: form.password,
         sponsorId: form.sponsorId,
-        parentUserId: form.parentUserId || form.sponsorId,
         markActivationPaid: true,
       });
       toast.success('Member created');
@@ -348,21 +336,11 @@ export default function AdminUsers() {
                 </div>
 
                 <MemberSelect
-                  label="Sponsor (referral)"
+                  label="Sponsor"
                   value={form.sponsorId}
-                  onChange={setSponsorId}
+                  onChange={(sponsorId) => setForm((prev) => ({ ...prev, sponsorId }))}
                   options={memberOptions}
-                />
-
-                <MemberSelect
-                  label="Place in tree under"
-                  value={form.parentUserId || form.sponsorId}
-                  onChange={(parentUserId) => {
-                    setParentTouched(true);
-                    setForm((prev) => ({ ...prev, parentUserId }));
-                  }}
-                  options={memberOptions}
-                  hint="Defaults to sponsor. Choose another member for manual placement."
+                  hint="Member is placed in the tree directly under the sponsor."
                 />
 
                 <p className="text-xs text-slate-500">

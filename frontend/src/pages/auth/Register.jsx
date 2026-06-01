@@ -15,6 +15,7 @@ export default function Register() {
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -74,13 +75,12 @@ export default function Register() {
               razorpay_order_id: paymentResponse.razorpay_order_id,
               razorpay_signature: paymentResponse.razorpay_signature,
             });
-            toast.success('Account activated! Welcome to Samriddhi Network!');
-            if (data?.user?.role === 'admin') {
-              navigate('/admin/dashboard');
-            } else {
-              navigate('/dashboard');
-            }
+            setRegisteredUser(data?.user || null);
+            setStep(3);
+            setLoading(false);
+            toast.success('Payment successful! Your account is active.');
           } catch (err) {
+            setLoading(false);
             toast.error(err.response?.data?.error || 'Registration failed after payment. Contact support.');
           }
         },
@@ -111,20 +111,22 @@ export default function Register() {
       </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6">
-        {[1, 2].map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-              s < step ? 'bg-emerald-500 text-white' :
-              s === step ? 'bg-brand-600 text-white' :
-              'bg-slate-200 text-slate-400'
-            }`}>
-              {s < step ? '✓' : s}
+      {step < 3 && (
+        <div className="flex items-center gap-2 mb-6">
+          {[1, 2].map((s) => (
+            <div key={s} className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                s < step ? 'bg-emerald-500 text-white' :
+                s === step ? 'bg-brand-600 text-white' :
+                'bg-slate-200 text-slate-400'
+              }`}>
+                {s < step ? '✓' : s}
+              </div>
+              {s < 2 && <div className={`w-10 h-0.5 ${step > s ? 'bg-emerald-400' : 'bg-slate-200'}`} />}
             </div>
-            {s < 2 && <div className={`w-10 h-0.5 ${step > s ? 'bg-emerald-400' : 'bg-slate-200'}`} />}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Card */}
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg border border-slate-100 p-8">
@@ -291,6 +293,42 @@ export default function Register() {
               ← Back to details
             </button>
           </>
+        )}
+
+        {/* ── STEP 3: Payment success ── */}
+        {step === 3 && (
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-3xl mx-auto mb-4">
+              ✓
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
+              Payment successful
+            </h2>
+            <p className="text-slate-500 text-sm mb-6">
+              Welcome{registeredUser?.name ? `, ${registeredUser.name}` : ''}! Your account is active and Month 1 is paid.
+            </p>
+            {registeredUser?.referralCode && (
+              <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 mb-6 text-left">
+                <p className="text-xs font-semibold text-brand-800 uppercase tracking-wider mb-1">Your referral code</p>
+                <p className="font-mono text-lg font-bold text-brand-900">{registeredUser.referralCode}</p>
+                <p className="text-xs text-brand-700 mt-1">Share this code when you sponsor new members.</p>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (registeredUser?.role === 'admin') {
+                  navigate('/admin/dashboard');
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="btn-primary w-full justify-center py-3 text-sm"
+              style={{ borderRadius: '10px' }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
         )}
 
         <ContactInfo variant="inline" className="justify-center mt-8 mb-2" />
