@@ -150,11 +150,17 @@ MLM/
 | GET | /api/wallet/withdrawals | My withdrawal history |
 | GET | /api/wallet/income | Income logs |
 
+### Payments (Razorpay)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | /api/payments/create-order | No | Create order for registration (₹1,200) |
+| POST | /api/payments/installment-order | Yes | Create order for a monthly installment |
+
 ### Installments
 | Method | Endpoint | Description |
 |---|---|---|
 | GET | /api/installments/my | My 16-month schedule |
-| POST | /api/installments/pay | Pay installment |
+| POST | /api/installments/pay | Confirm installment after Razorpay (body: `monthNumber`, `razorpay_*`) |
 
 ### Products
 | Method | Endpoint | Description |

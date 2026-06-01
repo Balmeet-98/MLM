@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { creditInstallmentIncome } = require('./incomeService');
 
 /**
  * Check all users for missed installments. Called by cron on 11th of each month.
@@ -84,4 +85,54 @@ const createInstallmentSchedule = async (userId, groupId) => {
   if (error) throw new Error('Failed to create installment schedule: ' + error.message);
 };
 
-module.exports = { checkMissedInstallments, createInstallmentSchedule };
+/**
+ * Mark an installment paid and credit sponsor income (after Razorpay verification).
+ */
+const completeInstallmentPayment = async (userId, monthNumber) => {
+  const month = parseInt(monthNumber, 10);
+  if (!month || month < 1 || month > 16) {
+    const err = new Error('Invalid month number');
+    err.status = 400;
+    throw err;
+  }
+
+  const { data: installment } = await supabase
+    .from('installments')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month_number', month)
+    .single();
+
+  if (!installment) {
+    const err = new Error('Installment not found');
+    err.status = 404;
+    throw err;
+  }
+  if (installment.status === 'paid') {
+    const err = new Error('This installment is already paid');
+    err.status = 400;
+    throw err;
+  }
+
+  const { error: updateErr } = await supabase
+    .from('installments')
+    .update({ status: 'paid', paid_date: new Date().toISOString() })
+    .eq('id', installment.id);
+
+  if (updateErr) throw updateErr;
+
+  await supabase
+    .from('users')
+    .update({ consecutive_missed_installments: 0 })
+    .eq('id', userId);
+
+  await creditInstallmentIncome(userId);
+
+  return installment;
+};
+
+module.exports = {
+  checkMissedInstallments,
+  createInstallmentSchedule,
+  completeInstallmentPayment,
+};

@@ -82,7 +82,7 @@ const createMember = async ({
       .eq('razorpay_payment_id', razorpay.razorpay_payment_id)
       .single();
     if (existingPayment) {
-      const err = new Error('This payment has already been used for registration.');
+      const err = new Error('This payment has already been processed.');
       err.status = 409;
       throw err;
     }
@@ -117,6 +117,8 @@ const createMember = async ({
       razorpay_payment_id: razorpay.razorpay_payment_id,
       razorpay_signature: razorpay.razorpay_signature || null,
       amount: ACTIVATION_AMOUNT,
+      payment_purpose: 'activation',
+      installment_month: 1,
       status: 'captured',
     });
   } else {
@@ -126,6 +128,8 @@ const createMember = async ({
       razorpay_payment_id: null,
       razorpay_signature: null,
       amount: ACTIVATION_AMOUNT,
+      payment_purpose: 'activation',
+      installment_month: 1,
       status: 'captured',
     });
   }

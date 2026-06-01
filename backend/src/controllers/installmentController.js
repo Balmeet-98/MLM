@@ -1,5 +1,11 @@
 const supabase = require('../config/supabase');
-const { creditInstallmentIncome } = require('../services/incomeService');
+const {
+  INSTALLMENT_AMOUNT,
+  getRazorpay,
+  assertRazorpayConfigured,
+  verifyRazorpaySignature,
+} = require('../utils/razorpay');
+const { completeInstallmentPayment } = require('../services/installmentService');
 
 const getMyInstallments = async (req, res, next) => {
   try {
@@ -24,38 +30,105 @@ const getMyInstallments = async (req, res, next) => {
   }
 };
 
+/**
+ * Confirm installment payment after Razorpay checkout (signature + order validation).
+ */
 const payInstallment = async (req, res, next) => {
   try {
-    const { monthNumber } = req.body;
+    assertRazorpayConfigured();
+    const razorpay = getRazorpay();
 
-    // Find the installment
-    const { data: installment } = await supabase
-      .from('installments')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .eq('month_number', monthNumber)
+    const {
+      monthNumber,
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
+    } = req.body;
+
+    const month = parseInt(monthNumber, 10);
+    if (!month || month < 1 || month > 16) {
+      return res.status(400).json({ error: 'monthNumber must be between 1 and 16' });
+    }
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      return res.status(400).json({ error: 'Payment details are required' });
+    }
+
+    const isValid = verifyRazorpaySignature(
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    );
+    if (!isValid) {
+      return res.status(400).json({ error: 'Payment verification failed. Please try again.' });
+    }
+
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('razorpay_payment_id', razorpay_payment_id)
       .single();
 
-    if (!installment) return res.status(404).json({ error: 'Installment not found' });
-    if (installment.status === 'paid') return res.status(400).json({ error: 'Already paid' });
+    if (existingPayment) {
+      return res.status(409).json({ error: 'This payment has already been processed.' });
+    }
 
-    // Mark as paid
-    await supabase
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const notes = order.notes || {};
+
+    if (notes.purpose !== 'installment') {
+      return res.status(400).json({ error: 'Invalid payment order type' });
+    }
+    if (notes.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Payment does not belong to your account' });
+    }
+    if (String(notes.month_number) !== String(month)) {
+      return res.status(400).json({ error: 'Payment does not match the selected month' });
+    }
+
+    const { data: installmentRow } = await supabase
       .from('installments')
-      .update({ status: 'paid', paid_date: new Date().toISOString() })
-      .eq('id', installment.id);
+      .select('status, amount')
+      .eq('user_id', req.user.id)
+      .eq('month_number', month)
+      .single();
 
-    // Reset consecutive missed count
-    await supabase
-      .from('users')
-      .update({ consecutive_missed_installments: 0 })
-      .eq('id', req.user.id);
+    if (!installmentRow) {
+      return res.status(404).json({ error: 'Installment not found' });
+    }
+    if (installmentRow.status === 'paid') {
+      return res.status(400).json({ error: 'This installment is already paid' });
+    }
 
-    // Credit installment income to direct sponsor
-    await creditInstallmentIncome(req.user.id);
+    const expectedPaise = Math.round((Number(installmentRow.amount) || INSTALLMENT_AMOUNT) * 100);
+    if (Number(order.amount) !== expectedPaise) {
+      return res.status(400).json({ error: 'Payment amount does not match installment due' });
+    }
 
-    res.json({ message: `Installment month ${monthNumber} paid successfully` });
+    await completeInstallmentPayment(req.user.id, month);
+
+    const amountInr = expectedPaise / 100;
+
+    const { error: payErr } = await supabase.from('payments').upsert(
+      {
+        user_id: req.user.id,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        amount: amountInr,
+        payment_purpose: 'installment',
+        installment_month: month,
+        status: 'captured',
+      },
+      { onConflict: 'razorpay_order_id' }
+    );
+
+    if (payErr) {
+      console.error('Payment record upsert error:', payErr.message);
+    }
+
+    res.json({ message: `Installment month ${month} paid successfully` });
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     next(err);
   }
 };

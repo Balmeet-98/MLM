@@ -1,22 +1,13 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const supabase = require('../config/supabase');
 const { signToken } = require('../utils/jwt');
 const { createMember } = require('../services/memberService');
-
-/**
- * Verify Razorpay payment signature.
- * HMAC-SHA256(orderId + "|" + paymentId, KEY_SECRET) must equal signature.
- */
-const verifyRazorpaySignature = (orderId, paymentId, signature) => {
-  const body = orderId + '|' + paymentId;
-  const expected = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-    .update(body)
-    .digest('hex');
-  return expected === signature;
-};
+const {
+  verifyRazorpaySignature,
+  assertRazorpayConfigured,
+  getRazorpay,
+} = require('../utils/razorpay');
 
 const register = async (req, res, next) => {
   try {
@@ -31,9 +22,19 @@ const register = async (req, res, next) => {
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
       return res.status(400).json({ error: 'Payment details are required to register' });
     }
+    try {
+      assertRazorpayConfigured();
+    } catch (e) {
+      return res.status(e.status || 503).json({ error: e.message });
+    }
     const isValidPayment = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
     if (!isValidPayment) {
       return res.status(400).json({ error: 'Payment verification failed. Please try again.' });
+    }
+
+    const order = await getRazorpay().orders.fetch(razorpay_order_id);
+    if (order.notes?.purpose !== 'activation') {
+      return res.status(400).json({ error: 'Invalid payment order for registration' });
     }
 
     let sponsorId = null;

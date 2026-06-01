@@ -274,6 +274,8 @@ CREATE TABLE IF NOT EXISTS payments (
   razorpay_payment_id VARCHAR(100) UNIQUE,
   razorpay_signature VARCHAR(300),
   amount DECIMAL(10,2) NOT NULL,
+  payment_purpose VARCHAR(30) DEFAULT 'activation' CHECK (payment_purpose IN ('activation', 'installment')),
+  installment_month INTEGER CHECK (installment_month IS NULL OR (installment_month BETWEEN 1 AND 16)),
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'captured', 'failed')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
