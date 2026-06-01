@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const fs = require('fs');
 const errorHandler = require('./src/middleware/errorHandler');
 const { startCronJobs } = require('./src/utils/cronJobs');
 
@@ -40,12 +41,27 @@ app.use('/api/installments', installmentRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Serve React frontend in production (single-service deployment)
-if (isProduction) {
-  const frontendDist = path.join(__dirname, '../frontend/dist');
+// Serve React frontend only when dist exists (monolith deploy).
+// API-only on Render/Vercel split: skip — frontend is a separate static site.
+const frontendDist = path.join(__dirname, '../frontend/dist');
+const serveFrontend = isProduction && fs.existsSync(path.join(frontendDist, 'index.html'));
+
+if (serveFrontend) {
   app.use(express.static(frontendDist));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
+      if (err) next(err);
+    });
+  });
+} else if (isProduction) {
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'ok',
+      app: 'Samriddhi Network API',
+      message: 'API only. Use the frontend URL for the web app.',
+      health: '/health',
+    });
   });
 }
 
