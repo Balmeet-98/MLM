@@ -45,8 +45,79 @@ const markAllNotificationsRead = async (userId) => {
     .is('read_at', null);
 };
 
+/**
+ * Create a notification if one with the same type + dedupe key does not exist.
+ */
+const createNotification = async ({ userId, type, title, message, meta = {} }) => {
+  if (meta.installmentId) {
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('type', type)
+      .contains('meta', { installmentId: meta.installmentId })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) return existing;
+  }
+
+  if (meta.withdrawalId) {
+    const { data: existingWd } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('type', type)
+      .contains('meta', { withdrawalId: meta.withdrawalId })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingWd) return existingWd;
+  }
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: userId,
+      type,
+      title,
+      message,
+      meta,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+const createNotificationsForUsers = async (userIds, payload) => {
+  const results = [];
+  for (const userId of userIds) {
+    if (!userId) continue;
+    try {
+      const row = await createNotification({ ...payload, userId });
+      results.push(row);
+    } catch (err) {
+      console.error(`[NOTIF] Failed for user ${userId}:`, err.message);
+    }
+  }
+  return results;
+};
+
+const getAdminUserIds = async () => {
+  const { data: admins } = await supabase
+    .from('users')
+    .select('id')
+    .eq('role', 'admin');
+  return (admins || []).map((a) => a.id);
+};
+
 module.exports = {
   getUserNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  createNotification,
+  createNotificationsForUsers,
+  getAdminUserIds,
 };

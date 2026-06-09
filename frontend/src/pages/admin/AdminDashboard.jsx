@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import StatCard from '../../components/dashboard/StatCard';
+import UserNotifications from '../../components/dashboard/UserNotifications';
 import toast from 'react-hot-toast';
 
 const actions = [
@@ -16,13 +17,25 @@ const actions = [
 export default function AdminDashboard() {
   const [stats, setStats]   = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = useCallback(() => {
+    api.get('/user/notifications')
+      .then((res) => {
+        setNotifications(res.data.notifications || []);
+        setUnreadCount(res.data.unreadCount || 0);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.get('/admin/stats')
       .then(res => setStats(res.data))
       .catch(() => toast.error('Failed to load stats'))
       .finally(() => setLoading(false));
-  }, []);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   return (
     <div className="space-y-6">
@@ -49,6 +62,16 @@ export default function AdminDashboard() {
             ₹{stats.totalIncomePaid.toLocaleString('en-IN')}
           </p>
           <p className="text-emerald-200 text-xs mt-1">Paid out to all members</p>
+        </div>
+      )}
+
+      {notifications.length > 0 && (
+        <div className="card">
+          <UserNotifications
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onRefresh={fetchNotifications}
+          />
         </div>
       )}
 

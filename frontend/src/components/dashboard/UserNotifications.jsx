@@ -2,6 +2,51 @@ import { format } from 'date-fns';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
+const TYPE_STYLES = {
+  installment_paid: {
+    icon: '✅',
+    border: 'border-emerald-300',
+    bg: 'bg-emerald-50',
+    badge: 'bg-emerald-600 text-white',
+    label: 'Payment',
+  },
+  installment_missed: {
+    icon: '⚠️',
+    border: 'border-orange-300',
+    bg: 'bg-orange-50',
+    badge: 'bg-orange-600 text-white',
+    label: 'Missed',
+  },
+  referral_installment_missed: {
+    icon: '👤',
+    border: 'border-amber-300',
+    bg: 'bg-amber-50',
+    badge: 'bg-amber-600 text-white',
+    label: 'Referral',
+  },
+  installment_admin_alert: {
+    icon: '📋',
+    border: 'border-red-300',
+    bg: 'bg-red-50',
+    badge: 'bg-red-600 text-white',
+    label: 'Alert',
+  },
+  installment_id_cancelled: {
+    icon: '🚫',
+    border: 'border-red-400',
+    bg: 'bg-red-100',
+    badge: 'bg-red-700 text-white',
+    label: 'Cancelled',
+  },
+  withdrawal_approved: {
+    icon: '💸',
+    border: 'border-emerald-300',
+    bg: 'bg-emerald-50',
+    badge: 'bg-emerald-600 text-white',
+    label: 'Withdrawal',
+  },
+};
+
 const DEFAULT_STYLE = {
   icon: '🔔',
   border: 'border-slate-300',
@@ -51,7 +96,7 @@ export default function UserNotifications({ notifications = [], unreadCount = 0,
 
       <div className="space-y-2">
         {notifications.map((n) => {
-          const style = DEFAULT_STYLE;
+          const style = TYPE_STYLES[n.type] || DEFAULT_STYLE;
           const unread = !n.read_at;
           return (
             <div

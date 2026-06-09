@@ -9,12 +9,20 @@ const statusBadge = {
   pending:  'badge badge-yellow',
 };
 
+const FILTER_TABS = [
+  { id: 'all', label: 'All' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'rejected', label: 'Rejected' },
+];
+
 export default function Wallet() {
   const [walletData, setWalletData]   = useState({ balance: 0, transactions: [] });
   const [loading, setLoading]         = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [withdrawals, setWithdrawals] = useState([]);
   const [submitting, setSubmitting]   = useState(false);
+  const [wdFilter, setWdFilter] = useState('all');
   const [form, setForm] = useState({
     amount: '', bankName: '', accountNumber: '', ifscCode: '', accountHolder: '',
   });
@@ -40,6 +48,10 @@ export default function Wallet() {
       toast.error(err.response?.data?.error || 'Failed to submit');
     } finally { setSubmitting(false); }
   };
+
+  const filteredWithdrawals = wdFilter === 'all'
+    ? withdrawals
+    : withdrawals.filter((w) => w.status === wdFilter);
 
   if (loading) return <div className="page-loader"><div className="spinner" /></div>;
 
@@ -144,35 +156,65 @@ export default function Wallet() {
       </div>
 
       {/* Withdrawal History */}
-      {withdrawals.length > 0 && (
-        <div className="card-flat">
-          <div className="px-5 pt-5 pb-3">
-            <h2 className="font-bold text-slate-800" style={{ fontFamily: 'var(--font-heading)' }}>Withdrawal Requests</h2>
+      <div className="card-flat">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-3">
+          <h2 className="font-bold text-slate-800" style={{ fontFamily: 'var(--font-heading)' }}>Withdrawal History</h2>
+          <div className="flex flex-wrap gap-1.5">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setWdFilter(tab.id)}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                  wdFilter === tab.id
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {filteredWithdrawals.length === 0 ? (
+          <div className="empty-state">
+            <div className="icon">💸</div>
+            <p>{wdFilter === 'all' ? 'No withdrawals yet' : `No ${wdFilter} withdrawals`}</p>
+          </div>
+        ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th>Requested</th>
+                  <th>Processed</th>
                   <th>Amount</th>
                   <th>Bank</th>
                   <th>Status</th>
+                  <th>Note</th>
                 </tr>
               </thead>
               <tbody>
-                {withdrawals.map(w => (
+                {filteredWithdrawals.map(w => (
                   <tr key={w.id}>
                     <td>{format(new Date(w.requested_at), 'dd MMM yyyy')}</td>
+                    <td className="text-slate-500">
+                      {w.processed_at ? format(new Date(w.processed_at), 'dd MMM yyyy') : '—'}
+                    </td>
                     <td className="font-semibold">₹{parseFloat(w.amount).toLocaleString('en-IN')}</td>
                     <td>{w.bank_name}</td>
                     <td><span className={statusBadge[w.status] || 'badge badge-gray'}>{w.status}</span></td>
+                    <td className="text-slate-500 text-sm max-w-[200px] truncate">
+                      {w.admin_note || '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

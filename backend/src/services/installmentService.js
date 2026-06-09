@@ -1,16 +1,84 @@
 const supabase = require('../config/supabase');
 const { creditInstallmentIncome } = require('./incomeService');
+const {
+  createNotification,
+  createNotificationsForUsers,
+  getAdminUserIds,
+} = require('./notificationService');
 
 /**
  * Check all users for missed installments. Called by cron on 11th of each month.
  * Marks unpaid installments as missed, increments counter, cancels ID at 4 consecutive.
  */
+const notifyMissedInstallment = async (inst, member, newMissedCount, cancelled) => {
+  const memberName = member.name || 'Member';
+  const meta = {
+    installmentId: inst.id,
+    memberId: inst.user_id,
+    memberName,
+    monthNumber: inst.month_number,
+    consecutiveMissed: newMissedCount,
+  };
+
+  if (cancelled) {
+    await createNotification({
+      userId: inst.user_id,
+      type: 'installment_id_cancelled',
+      title: 'Account deactivated',
+      message: `Your ID has been cancelled after 4 consecutive missed installments (latest: Month ${inst.month_number}). Contact support if you need help.`,
+      meta,
+    });
+
+    if (member.sponsor_id) {
+      await createNotification({
+        userId: member.sponsor_id,
+        type: 'installment_id_cancelled',
+        title: 'Referral ID cancelled',
+        message: `Your referral ${memberName} had their ID cancelled after 4 consecutive missed installments.`,
+        meta,
+      });
+    }
+
+    const adminIds = await getAdminUserIds();
+    await createNotificationsForUsers(adminIds, {
+      type: 'installment_id_cancelled',
+      title: 'Member ID cancelled',
+      message: `${memberName} had their ID cancelled after 4 consecutive missed installments (Month ${inst.month_number}).`,
+      meta,
+    });
+    return;
+  }
+
+  await createNotification({
+    userId: inst.user_id,
+    type: 'installment_missed',
+    title: 'Installment missed',
+    message: `Month ${inst.month_number} installment was not paid by the 10th. ${newMissedCount} consecutive miss${newMissedCount > 1 ? 'es' : ''} — 4 misses result in ID cancellation.`,
+    meta,
+  });
+
+  if (member.sponsor_id) {
+    await createNotification({
+      userId: member.sponsor_id,
+      type: 'referral_installment_missed',
+      title: 'Referral missed installment',
+      message: `Your referral ${memberName} missed their Month ${inst.month_number} installment (${newMissedCount} consecutive miss${newMissedCount > 1 ? 'es' : ''}).`,
+      meta,
+    });
+  }
+
+  const adminIds = await getAdminUserIds();
+  await createNotificationsForUsers(adminIds, {
+    type: 'installment_admin_alert',
+    title: 'Member missed installment',
+    message: `${memberName} missed Month ${inst.month_number} installment — ${newMissedCount} consecutive miss${newMissedCount > 1 ? 'es' : ''}.`,
+    meta,
+  });
+};
+
 const checkMissedInstallments = async () => {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
 
-  // Find all pending installments whose due date has passed
   const { data: overdueInstallments } = await supabase
     .from('installments')
     .select('id, user_id, month_number, group_id')
@@ -23,25 +91,23 @@ const checkMissedInstallments = async () => {
   }
 
   for (const inst of overdueInstallments) {
-    // Mark as missed
     await supabase
       .from('installments')
       .update({ status: 'missed' })
       .eq('id', inst.id);
 
-    // Increment consecutive missed count
     const { data: user } = await supabase
       .from('users')
-      .select('consecutive_missed_installments')
+      .select('consecutive_missed_installments, name, sponsor_id')
       .eq('id', inst.user_id)
       .single();
 
     if (!user) continue;
 
     const newMissedCount = (user.consecutive_missed_installments || 0) + 1;
+    const cancelled = newMissedCount >= 4;
 
-    if (newMissedCount >= 4) {
-      // Cancel the member's ID
+    if (cancelled) {
       await supabase
         .from('users')
         .update({
@@ -56,6 +122,12 @@ const checkMissedInstallments = async () => {
         .from('users')
         .update({ consecutive_missed_installments: newMissedCount })
         .eq('id', inst.user_id);
+    }
+
+    try {
+      await notifyMissedInstallment(inst, user, newMissedCount, cancelled);
+    } catch (err) {
+      console.error(`[CRON] Notification failed for installment ${inst.id}:`, err.message);
     }
   }
 

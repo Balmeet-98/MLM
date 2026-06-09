@@ -2,6 +2,7 @@ const supabase = require('../config/supabase');
 const { createMember } = require('../services/memberService');
 const { validateTreeParent } = require('../services/treeService');
 const { debitWallet } = require('../services/walletService');
+const { createNotification } = require('../services/notificationService');
 const { getPairInsights } = require('../services/pairInsightService');
 
 // ── USERS ──────────────────────────────────────────────────
@@ -182,11 +183,22 @@ const getAllProducts = async (req, res, next) => {
 // ── WITHDRAWALS ────────────────────────────────────────────
 const getPendingWithdrawals = async (req, res, next) => {
   try {
-    const { data: withdrawals } = await supabase
+    const status = req.query.status || 'pending';
+    let query = supabase
       .from('withdrawals')
-      .select('*, users(name, email, phone)')
-      .eq('status', 'pending')
-      .order('requested_at', { ascending: true });
+      .select('*, users(name, email, phone)');
+
+    if (status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    if (status === 'pending') {
+      query = query.order('requested_at', { ascending: true });
+    } else {
+      query = query.order('processed_at', { ascending: false, nullsFirst: false });
+    }
+
+    const { data: withdrawals } = await query;
     res.json({ withdrawals: withdrawals || [] });
   } catch (err) { next(err); }
 };
@@ -208,6 +220,18 @@ const approveWithdrawal = async (req, res, next) => {
       .from('withdrawals')
       .update({ status: 'approved', processed_at: new Date().toISOString() })
       .eq('id', id);
+
+    try {
+      await createNotification({
+        userId: withdrawal.user_id,
+        type: 'withdrawal_approved',
+        title: 'Withdrawal approved',
+        message: `Your withdrawal of ₹${Number(withdrawal.amount).toLocaleString('en-IN')} has been approved and processed.`,
+        meta: { withdrawalId: id, amount: withdrawal.amount },
+      });
+    } catch (notifErr) {
+      console.error('Withdrawal notification error:', notifErr.message);
+    }
 
     res.json({ message: 'Withdrawal approved and wallet debited' });
   } catch (err) { next(err); }

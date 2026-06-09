@@ -6,6 +6,7 @@ const {
   verifyRazorpaySignature,
 } = require('../utils/razorpay');
 const { completeInstallmentPayment } = require('../services/installmentService');
+const { createNotification } = require('../services/notificationService');
 
 const getMyInstallments = async (req, res, next) => {
   try {
@@ -124,6 +125,25 @@ const payInstallment = async (req, res, next) => {
 
     if (payErr) {
       console.error('Payment record upsert error:', payErr.message);
+    }
+
+    const { data: paidInstallment } = await supabase
+      .from('installments')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .eq('month_number', month)
+      .single();
+
+    try {
+      await createNotification({
+        userId: req.user.id,
+        type: 'installment_paid',
+        title: 'Payment received',
+        message: `Thank you! Month ${month} installment of ₹${amountInr.toLocaleString('en-IN')} has been received.`,
+        meta: { installmentId: paidInstallment?.id, monthNumber: month, amount: amountInr },
+      });
+    } catch (notifErr) {
+      console.error('Payment notification error:', notifErr.message);
     }
 
     res.json({ message: `Installment month ${month} paid successfully` });
