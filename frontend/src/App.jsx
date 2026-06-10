@@ -13,6 +13,7 @@ import Income from './pages/Income';
 import Wallet from './pages/Wallet';
 import Installments from './pages/Installments';
 import Rewards from './pages/Rewards';
+import Documents from './pages/Documents';
 // import ProductSelect from './pages/ProductSelect';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/installments" element={<Installments />} />
               <Route path="/rewards" element={<Rewards />} />
+              <Route path="/documents" element={<Documents />} />
               {/* <Route path="/products/select" element={<ProductSelect />} /> */}
             </Route>
 
