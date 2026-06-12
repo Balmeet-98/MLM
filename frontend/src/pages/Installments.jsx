@@ -41,7 +41,7 @@ export default function Installments() {
 
       openRazorpayCheckout({
         order,
-        description: `Month ${monthNumber} installment — ₹1,200`,
+        description: `Month ${monthNumber} installment — ${monthlyLabel}`,
         prefill: {
           name: profile?.name || user?.name || '',
           email: profile?.email || user?.email || '',
@@ -86,6 +86,8 @@ export default function Installments() {
   };
 
   const paidCount = data.installments.filter((i) => i.status === 'paid').length;
+  const isDoubleId = profile?.membership_type === 'double_id';
+  const monthlyLabel = isDoubleId ? '₹2,400' : '₹1,200';
   const progress = Math.round((paidCount / 16) * 100);
 
   if (loading) {
@@ -127,7 +129,12 @@ export default function Installments() {
 
       <div className="page-header">
         <h1 className="page-title">Installments</h1>
-        <p className="page-subtitle">16-month payment schedule — ₹1,200/month via Razorpay</p>
+        <p className="page-subtitle">
+          16-month payment schedule — {monthlyLabel}/month via Razorpay
+          {isDoubleId && (
+            <span className="ml-2 badge badge-yellow align-middle">Double ID</span>
+          )}
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">

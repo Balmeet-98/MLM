@@ -1,6 +1,9 @@
 const supabase = require('../config/supabase');
 const {
-  INSTALLMENT_AMOUNT,
+  getMonthlyAmount,
+  normalizeMembershipType,
+} = require('../services/memberService');
+const {
   getRazorpay,
   assertRazorpayConfigured,
 } = require('../utils/razorpay');
@@ -13,12 +16,16 @@ const createOrder = async (req, res, next) => {
     assertRazorpayConfigured();
     const razorpay = getRazorpay();
 
+    const membershipType = normalizeMembershipType(req.body?.membershipType);
+    const amountInr = getMonthlyAmount(membershipType);
+
     const order = await razorpay.orders.create({
-      amount: INSTALLMENT_AMOUNT * 100,
+      amount: amountInr * 100,
       currency: 'INR',
       notes: {
         purpose: 'activation',
         installment_month: '1',
+        membership_type: membershipType,
       },
     });
 
@@ -27,6 +34,8 @@ const createOrder = async (req, res, next) => {
       amount: order.amount,
       currency: order.currency,
       keyId: process.env.RAZORPAY_KEY_ID,
+      membershipType,
+      amountInr,
     });
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });
@@ -61,7 +70,7 @@ const createInstallmentOrder = async (req, res, next) => {
       return res.status(400).json({ error: 'This installment is already paid' });
     }
 
-    const amountInr = Number(installment.amount) || INSTALLMENT_AMOUNT;
+    const amountInr = Number(installment.amount);
 
     const order = await razorpay.orders.create({
       amount: Math.round(amountInr * 100),

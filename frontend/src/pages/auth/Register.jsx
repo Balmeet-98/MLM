@@ -6,7 +6,10 @@ import toast from 'react-hot-toast';
 import Logo from '../../components/brand/Logo';
 import ContactInfo from '../../components/brand/ContactInfo';
 
-const ACTIVATION_AMOUNT = 1200;
+const PLANS = {
+  standard: { label: 'Standard', monthly: 1200, desc: 'Standard product rewards (booking, mid, deluxe)' },
+  double_id: { label: 'Double ID', monthly: 2400, desc: 'Double ID product rewards only — pay ₹2,400/month' },
+};
 
 export default function Register() {
   const { register } = useAuth();
@@ -23,12 +26,15 @@ export default function Register() {
     password: '',
     phone: '',
     sponsorCode: searchParams.get('ref') || '',
+    membershipType: 'standard',
   });
   const [showPwd, setShowPwd] = useState(false);
 
+  const plan = PLANS[form.membershipType] || PLANS.standard;
+  const monthlyAmount = plan.monthly;
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ── Step 1: validate fields then move to step 2
   const handleStep1 = (e) => {
     e.preventDefault();
     if (!form.sponsorCode.trim()) {
@@ -42,19 +48,19 @@ export default function Register() {
     setStep(2);
   };
 
-  // ── Step 2: open Razorpay, on success call register API
   const handlePay = async () => {
     setLoading(true);
     try {
-      // Create Razorpay order
-      const { data: order } = await api.post('/payments/create-order');
+      const { data: order } = await api.post('/payments/create-order', {
+        membershipType: form.membershipType,
+      });
 
       const options = {
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
         name: 'Samriddhi Network',
-        description: 'Account Activation — Month 1 of 16',
+        description: `${plan.label} — Month 1 of 16`,
         order_id: order.orderId,
         prefill: {
           name: form.name,
@@ -64,13 +70,13 @@ export default function Register() {
         theme: { color: '#EA580C' },
         handler: async (paymentResponse) => {
           try {
-            // Payment succeeded — create account
             const data = await register({
               name: form.name,
               email: form.email,
               password: form.password,
               phone: form.phone,
               sponsorCode: form.sponsorCode.toUpperCase(),
+              membershipType: form.membershipType,
               razorpay_payment_id: paymentResponse.razorpay_payment_id,
               razorpay_order_id: paymentResponse.razorpay_order_id,
               razorpay_signature: paymentResponse.razorpay_signature,
@@ -110,7 +116,6 @@ export default function Register() {
         <Logo size="lg" subtitle="Join the TEAMWORK family" />
       </div>
 
-      {/* Step indicator */}
       {step < 3 && (
         <div className="flex items-center gap-2 mb-6">
           {[1, 2].map((s) => (
@@ -128,10 +133,8 @@ export default function Register() {
         </div>
       )}
 
-      {/* Card */}
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg border border-slate-100 p-8">
 
-        {/* ── STEP 1: Personal Details ── */}
         {step === 1 && (
           <>
             <h2 className="text-2xl font-black text-slate-900 mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
@@ -140,6 +143,32 @@ export default function Register() {
             <p className="text-slate-500 text-sm mb-7">Fill in your information to get started</p>
 
             <form onSubmit={handleStep1} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Choose your plan <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(PLANS).map(([key, p]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setForm({ ...form, membershipType: key })}
+                      className={`text-left rounded-xl border-2 p-4 transition-all ${
+                        form.membershipType === key
+                          ? 'border-brand-500 bg-brand-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <p className="font-bold text-slate-900 text-sm">{p.label}</p>
+                      <p className="text-brand-600 font-black text-lg mt-1" style={{ fontFamily: 'var(--font-heading)' }}>
+                        ₹{p.monthly.toLocaleString('en-IN')}/mo
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">{p.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -235,7 +264,6 @@ export default function Register() {
           </>
         )}
 
-        {/* ── STEP 2: Pay to Activate ── */}
         {step === 2 && (
           <>
             <h2 className="text-2xl font-black text-slate-900 mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
@@ -243,8 +271,11 @@ export default function Register() {
             </h2>
             <p className="text-slate-500 text-sm mb-7">Pay Month 1 installment to complete registration</p>
 
-            {/* Summary card */}
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 mb-6 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Plan</span>
+                <span className="font-semibold text-slate-800">{plan.label}</span>
+              </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Name</span>
                 <span className="font-semibold text-slate-800">{form.name}</span>
@@ -260,14 +291,14 @@ export default function Register() {
               <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
                 <span className="text-slate-600 font-semibold">Month 1 of 16</span>
                 <span className="text-2xl font-black text-brand-600" style={{ fontFamily: 'var(--font-heading)' }}>
-                  ₹{ACTIVATION_AMOUNT.toLocaleString('en-IN')}
+                  ₹{monthlyAmount.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
 
-            {/* Info note */}
             <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 mb-6 text-xs text-amber-700">
-              After paying ₹1,200 today, you will need to pay ₹1,200/month for the remaining 15 months.
+              After paying ₹{monthlyAmount.toLocaleString('en-IN')} today, you will need to pay
+              ₹{monthlyAmount.toLocaleString('en-IN')}/month for the remaining 15 months.
               Payments are due by the 10th of each month.
             </div>
 
@@ -282,7 +313,7 @@ export default function Register() {
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Opening payment...
                 </>
-              ) : `Pay ₹${ACTIVATION_AMOUNT.toLocaleString('en-IN')} & Create Account`}
+              ) : `Pay ₹${monthlyAmount.toLocaleString('en-IN')} & Create Account`}
             </button>
 
             <button
@@ -295,7 +326,6 @@ export default function Register() {
           </>
         )}
 
-        {/* ── STEP 3: Payment success ── */}
         {step === 3 && (
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-3xl mx-auto mb-4">

@@ -1,5 +1,5 @@
 const supabase = require('../config/supabase');
-const { createMember } = require('../services/memberService');
+const { createMember, normalizeMembershipType } = require('../services/memberService');
 const { validateTreeParent } = require('../services/treeService');
 const { debitWallet } = require('../services/walletService');
 const { createNotification } = require('../services/notificationService');
@@ -8,18 +8,21 @@ const { getPairInsights } = require('../services/pairInsightService');
 // ── USERS ──────────────────────────────────────────────────
 const getAllUsers = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, search, status } = req.query;
+    const { page = 1, limit = 20, search, status, membershipType } = req.query;
     const offset = (page - 1) * limit;
 
     let query = supabase
       .from('users')
-      .select('id, name, email, phone, referral_code, role, is_active, created_at, consecutive_missed_installments, sponsor_id', { count: 'exact' })
+      .select('id, name, email, phone, referral_code, role, is_active, created_at, consecutive_missed_installments, sponsor_id, membership_type', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 
     if (search) query = query.ilike('name', `%${search}%`);
     if (status === 'active') query = query.eq('is_active', true);
     if (status === 'inactive') query = query.eq('is_active', false);
+    if (membershipType === 'standard' || membershipType === 'double_id') {
+      query = query.eq('membership_type', membershipType);
+    }
 
     const { data: users, count } = await query;
     res.json({ users: users || [], total: count, page: parseInt(page) });
@@ -75,13 +78,36 @@ const createUser = async (req, res, next) => {
       sponsorId,
       parentUserId,
       markActivationPaid = true,
+      joinedAt,
+      paidInstallmentsCount,
+      membershipType: rawMembershipType,
     } = req.body;
+
+    const membershipType = normalizeMembershipType(rawMembershipType);
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'name, email, and password are required' });
     }
     if (!sponsorId) {
       return res.status(400).json({ error: 'sponsorId is required' });
+    }
+
+    const installmentsPaid =
+      paidInstallmentsCount != null
+        ? parseInt(paidInstallmentsCount, 10)
+        : markActivationPaid !== false
+          ? 1
+          : 0;
+
+    if (Number.isNaN(installmentsPaid) || installmentsPaid < 0 || installmentsPaid > 16) {
+      return res.status(400).json({ error: 'paidInstallmentsCount must be between 0 and 16' });
+    }
+
+    if (joinedAt) {
+      const parsedJoin = new Date(joinedAt);
+      if (Number.isNaN(parsedJoin.getTime())) {
+        return res.status(400).json({ error: 'Invalid joinedAt date' });
+      }
     }
 
     const { data: sponsor } = await supabase
@@ -123,6 +149,9 @@ const createUser = async (req, res, next) => {
       parentUserId: treeParentId,
       paymentMode: 'manual',
       markActivationPaid: markActivationPaid !== false,
+      joinedAt: joinedAt || undefined,
+      paidInstallmentsCount: installmentsPaid,
+      membershipType,
     });
 
     res.status(201).json({
@@ -134,6 +163,9 @@ const createUser = async (req, res, next) => {
         referralCode: newUser.referral_code,
         sponsorId: newUser.sponsor_id,
         isActive: newUser.is_active,
+        joinedAt: newUser.created_at,
+        paidInstallmentsCount: installmentsPaid,
+        membershipType: newUser.membership_type,
       },
     });
   } catch (err) {

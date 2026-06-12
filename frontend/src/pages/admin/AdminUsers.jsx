@@ -10,6 +10,14 @@ const emptyForm = {
   phone: '',
   password: '',
   sponsorId: '',
+  joinedAt: format(new Date(), 'yyyy-MM-dd'),
+  paidInstallmentsCount: '1',
+  membershipType: 'standard',
+};
+
+const MEMBERSHIP_LABELS = {
+  standard: 'Standard',
+  double_id: 'Double ID',
 };
 
 function MemberSelect({ label, value, onChange, options, hint }) {
@@ -35,8 +43,9 @@ function MemberSelect({ label, value, onChange, options, hint }) {
 }
 
 export default function AdminUsers() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
+  const membershipFilter = searchParams.get('membershipType');
 
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -57,6 +66,10 @@ export default function AdminUsers() {
         params: {
           search: q || undefined,
           status: statusFilter === 'active' || statusFilter === 'inactive' ? statusFilter : undefined,
+          membershipType:
+            membershipFilter === 'standard' || membershipFilter === 'double_id'
+              ? membershipFilter
+              : undefined,
           limit: 50,
         },
       });
@@ -80,7 +93,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers();
-  }, [statusFilter]);
+  }, [statusFilter, membershipFilter]);
 
   const openAddModal = () => {
     setForm(emptyForm);
@@ -105,7 +118,9 @@ export default function AdminUsers() {
         phone: form.phone || undefined,
         password: form.password,
         sponsorId: form.sponsorId,
-        markActivationPaid: true,
+        joinedAt: form.joinedAt,
+        paidInstallmentsCount: parseInt(form.paidInstallmentsCount, 10),
+        membershipType: form.membershipType,
       });
       toast.success('Member created');
       setCreatedUser(data.user);
@@ -146,7 +161,7 @@ export default function AdminUsers() {
         </button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         <input
           className="input flex-1 max-w-sm"
           placeholder="Search by name or email…"
@@ -154,6 +169,20 @@ export default function AdminUsers() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && fetchUsers(search)}
         />
+        <select
+          className="input w-auto"
+          value={membershipFilter || ''}
+          onChange={(e) => {
+            const next = new URLSearchParams(searchParams);
+            if (e.target.value) next.set('membershipType', e.target.value);
+            else next.delete('membershipType');
+            setSearchParams(next);
+          }}
+        >
+          <option value="">All plans</option>
+          <option value="standard">Standard</option>
+          <option value="double_id">Double ID</option>
+        </select>
         <button onClick={() => fetchUsers(search)} className="btn-primary">
           Search
         </button>
@@ -171,6 +200,7 @@ export default function AdminUsers() {
                 <tr>
                   <th>Member</th>
                   <th>Ref Code</th>
+                  <th>Plan</th>
                   <th>Status</th>
                   <th>Missed</th>
                   <th>Joined</th>
@@ -180,7 +210,7 @@ export default function AdminUsers() {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-slate-400">
+                    <td colSpan={7} className="text-center py-10 text-slate-400">
                       No users found
                     </td>
                   </tr>
@@ -201,6 +231,15 @@ export default function AdminUsers() {
                       <td>
                         <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">
                           {user.referral_code}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            user.membership_type === 'double_id' ? 'badge-yellow' : 'badge-blue'
+                          }`}
+                        >
+                          {MEMBERSHIP_LABELS[user.membership_type] || 'Standard'}
                         </span>
                       </td>
                       <td>
@@ -280,6 +319,24 @@ export default function AdminUsers() {
                     <span className="text-slate-500">Referral code:</span>{' '}
                     <span className="font-mono font-bold">{createdUser.referralCode}</span>
                   </p>
+                  {createdUser.joinedAt && (
+                    <p>
+                      <span className="text-slate-500">Joined:</span>{' '}
+                      {format(new Date(createdUser.joinedAt), 'dd MMM yyyy')}
+                    </p>
+                  )}
+                  {createdUser.paidInstallmentsCount != null && (
+                    <p>
+                      <span className="text-slate-500">Installments paid:</span>{' '}
+                      {createdUser.paidInstallmentsCount} / 16
+                    </p>
+                  )}
+                  {createdUser.membershipType && (
+                    <p>
+                      <span className="text-slate-500">Plan:</span>{' '}
+                      {MEMBERSHIP_LABELS[createdUser.membershipType] || createdUser.membershipType}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Link
@@ -343,8 +400,59 @@ export default function AdminUsers() {
                   hint="Member is placed in the tree directly under the sponsor."
                 />
 
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Membership plan</label>
+                  <select
+                    className="input w-full"
+                    value={form.membershipType}
+                    onChange={(e) => setForm({ ...form, membershipType: e.target.value })}
+                  >
+                    <option value="standard">Standard — ₹1,200/month</option>
+                    <option value="double_id">Double ID — ₹2,400/month</option>
+                  </select>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Double ID members pay double installments and receive double ID product rewards only.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Joined date</label>
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={form.joinedAt}
+                    onChange={(e) => setForm({ ...form, joinedAt: e.target.value })}
+                    required
+                  />
+                  <p className="text-xs text-slate-400 mt-1">
+                    When the member originally joined. Installment due dates are calculated from this date.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">
+                    Installments already paid
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={form.paidInstallmentsCount}
+                    onChange={(e) => setForm({ ...form, paidInstallmentsCount: e.target.value })}
+                  >
+                    {Array.from({ length: 17 }, (_, i) => (
+                      <option key={i} value={String(i)}>
+                        {i === 0 ? 'None' : `${i} month${i > 1 ? 's' : ''} (Month 1${i > 1 ? `–${i}` : ''})`}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-400 mt-1">
+                    For existing members being added — select how many of the 16 installments are already paid.
+                  </p>
+                </div>
+
                 <p className="text-xs text-slate-500">
-                  Activation (₹1,200) is recorded as admin manual payment. Month 1 installment is marked paid.
+                  Activation (
+                  {form.membershipType === 'double_id' ? '₹2,400' : '₹1,200'}
+                  ) is recorded as admin manual payment.
                 </p>
 
                 <div className="flex gap-2 pt-2">
