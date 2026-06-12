@@ -22,15 +22,31 @@ const CATEGORY_ICON = {
 export default function ProductSelect() {
   const [products, setProducts]     = useState([]);
   const [myProducts, setMyProducts] = useState([]);
+  const [membershipType, setMembershipType] = useState('standard');
   const [activeTier, setActiveTier] = useState('booking');
   const [loading, setLoading]       = useState(true);
   const [purchasing, setPurchasing] = useState(null);
   const { updateUser } = useAuth();
   const navigate = useNavigate();
 
+  const visibleTiers =
+    membershipType === 'double_id'
+      ? TIERS.filter((t) => t.key === 'double_id')
+      : TIERS.filter((t) => t.key !== 'double_id');
+
   const reload = () =>
-    Promise.all([api.get('/products'), api.get('/products/my')])
-      .then(([p, mp]) => { setProducts(p.data.products); setMyProducts(mp.data.products); })
+    Promise.all([
+      api.get('/auth/me'),
+      api.get('/products'),
+      api.get('/products/my'),
+    ])
+      .then(([me, p, mp]) => {
+        const type = me.data.user?.membership_type || 'standard';
+        setMembershipType(type);
+        setActiveTier(type === 'double_id' ? 'double_id' : 'booking');
+        setProducts(p.data.products);
+        setMyProducts(mp.data.products);
+      })
       .finally(() => setLoading(false));
 
   useEffect(() => { reload(); }, []);
@@ -64,16 +80,20 @@ export default function ProductSelect() {
     <div className="space-y-6">
       <div className="page-header">
         <h1 className="page-title">Product Selection</h1>
-        {!hasBookingProduct ? (
+        {!hasBookingProduct && membershipType !== 'double_id' ? (
           <p className="text-red-600 text-sm font-semibold mt-1">⚠️ Select a Booking product first to activate your account</p>
         ) : (
-          <p className="page-subtitle">Choose your products based on your eligibility tier</p>
+          <p className="page-subtitle">
+            {membershipType === 'double_id'
+              ? 'Choose from Double ID product rewards'
+              : 'Choose your products based on your eligibility tier'}
+          </p>
         )}
       </div>
 
       {/* Tier tabs */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
-        {TIERS.map(({ key, label }) => (
+        {visibleTiers.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveTier(key)}

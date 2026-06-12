@@ -136,18 +136,19 @@ const checkMissedInstallments = async () => {
 
 /**
  * Create installment records for a new member joining a group (months 1-16).
+ * Due dates are anchored to the member's join date (month 1 due on the 10th of join month).
  */
-const createInstallmentSchedule = async (userId, groupId) => {
-  const now = new Date();
+const createInstallmentSchedule = async (userId, groupId, joinedAt = new Date(), monthlyAmount = 1200) => {
+  const base = new Date(joinedAt);
   const installments = [];
 
   for (let month = 1; month <= 16; month++) {
-    const dueDate = new Date(now.getFullYear(), now.getMonth() + month - 1, 10);
+    const dueDate = new Date(base.getFullYear(), base.getMonth() + month - 1, 10);
     installments.push({
       user_id: userId,
       group_id: groupId,
       month_number: month,
-      amount: 1200,
+      amount: monthlyAmount,
       due_date: dueDate.toISOString(),
       status: 'pending',
     });

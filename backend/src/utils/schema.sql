@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS users (
   id_proof_url VARCHAR(500),
   group_id UUID REFERENCES groups(id) ON DELETE SET NULL,
   consecutive_missed_installments INTEGER DEFAULT 0,
+  membership_type VARCHAR(20) DEFAULT 'standard' CHECK (membership_type IN ('standard', 'double_id')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const supabase = require('../config/supabase');
 const { signToken } = require('../utils/jwt');
-const { createMember } = require('../services/memberService');
+const { createMember, getMonthlyAmount, normalizeMembershipType } = require('../services/memberService');
 const {
   verifyRazorpaySignature,
   assertRazorpayConfigured,
@@ -17,7 +17,11 @@ const register = async (req, res, next) => {
     const {
       name, email, password, phone, sponsorCode,
       razorpay_payment_id, razorpay_order_id, razorpay_signature,
+      membershipType: rawMembershipType,
     } = req.body;
+
+    const membershipType = normalizeMembershipType(rawMembershipType);
+    const expectedAmount = getMonthlyAmount(membershipType);
 
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
       return res.status(400).json({ error: 'Payment details are required to register' });
@@ -35,6 +39,12 @@ const register = async (req, res, next) => {
     const order = await getRazorpay().orders.fetch(razorpay_order_id);
     if (order.notes?.purpose !== 'activation') {
       return res.status(400).json({ error: 'Invalid payment order for registration' });
+    }
+    if (order.notes?.membership_type && order.notes.membership_type !== membershipType) {
+      return res.status(400).json({ error: 'Membership type does not match payment order' });
+    }
+    if (Number(order.amount) !== expectedAmount * 100) {
+      return res.status(400).json({ error: 'Payment amount does not match selected membership plan' });
     }
 
     let sponsorId = null;
@@ -62,6 +72,7 @@ const register = async (req, res, next) => {
         razorpay_signature,
       },
       markActivationPaid: true,
+      membershipType,
     });
 
     const token = signToken({ id: newUser.id, role: newUser.role });
@@ -76,6 +87,7 @@ const register = async (req, res, next) => {
         referralCode: newUser.referral_code,
         isActive: true,
         role: newUser.role,
+        membershipType: newUser.membership_type,
       },
     });
   } catch (err) {
@@ -121,6 +133,7 @@ const login = async (req, res, next) => {
         referralCode: user.referral_code,
         isActive: user.is_active,
         role: user.role,
+        membershipType: user.membership_type,
       },
     });
   } catch (err) {
@@ -132,7 +145,7 @@ const getMe = async (req, res, next) => {
   try {
     const { data: user } = await supabase
       .from('users')
-      .select('id, name, email, phone, referral_code, role, is_active, created_at')
+      .select('id, name, email, phone, referral_code, role, is_active, created_at, membership_type')
       .eq('id', req.user.id)
       .single();
 
