@@ -114,6 +114,7 @@ export default function Dashboard() {
           icon="💰"
           color="green"
           subtitle="Available to withdraw"
+          to="/wallet"
         />
         <StatCard
           title="Total Income"
@@ -121,6 +122,7 @@ export default function Dashboard() {
           icon="📈"
           color="blue"
           subtitle="All-time earnings"
+          to="/income"
         />
         <StatCard
           title="Total Pairs"
@@ -128,6 +130,7 @@ export default function Dashboard() {
           icon="🤝"
           color="purple"
           subtitle={`Legs ${pairs?.left_count || 0} & ${pairs?.right_count || 0} → min = pairs`}
+          to="/tree"
         />
         <StatCard
           title="Team Size"
@@ -135,14 +138,15 @@ export default function Dashboard() {
           icon="👥"
           color="yellow"
           subtitle={`${team?.directChildren || 0} direct · ${team?.activeLegs || 0} active leg(s)`}
+          to="/tree"
         />
       </div>
 
       {/* ── Secondary Stats ── */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard title="1st Direct Leg" value={(team?.leftCount || 0).toLocaleString()} icon="◀" color="red" subtitle="Subtree size" />
-        <StatCard title="2nd Direct Leg" value={(team?.rightCount || 0).toLocaleString()} icon="▶" color="red" subtitle="Subtree size" />
-        <StatCard title="Rewards Earned" value={rewardsCount || 0} icon="🏆" color="yellow" subtitle="Tap to claim" />
+        <StatCard title="1st Direct Leg" value={(team?.leftCount || 0).toLocaleString()} icon="◀" color="red" subtitle="Subtree size" to="/tree" />
+        <StatCard title="2nd Direct Leg" value={(team?.rightCount || 0).toLocaleString()} icon="▶" color="red" subtitle="Subtree size" to="/tree" />
+        <StatCard title="Rewards Earned" value={rewardsCount || 0} icon="🏆" color="yellow" subtitle="Tap to claim" to="/rewards" />
       </div>
 
       {/* ── Bottom Row ── */}

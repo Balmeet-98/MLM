@@ -54,15 +54,19 @@ export default function AdminDashboard() {
 
       {/* Total income paid highlight */}
       {stats?.totalIncomePaid > 0 && (
-        <div className="relative overflow-hidden rounded-2xl p-5"
-          style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
+        <Link
+          to="/admin/income"
+          className="block relative overflow-hidden rounded-2xl p-5 transition-all hover:shadow-lg hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+          style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
+          aria-label={`Total income distributed: ₹${stats.totalIncomePaid.toLocaleString('en-IN')}`}
+        >
           <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/10" />
           <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider">Total Income Distributed</p>
           <p className="text-4xl font-black text-white mt-1" style={{ fontFamily: 'var(--font-heading)' }}>
             ₹{stats.totalIncomePaid.toLocaleString('en-IN')}
           </p>
-          <p className="text-emerald-200 text-xs mt-1">Paid out to all members</p>
-        </div>
+          <p className="text-emerald-200 text-xs mt-1">Paid out to all members · View income logs →</p>
+        </Link>
       )}
 
       {notifications.length > 0 && (

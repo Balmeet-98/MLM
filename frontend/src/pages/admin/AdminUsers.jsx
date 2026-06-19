@@ -20,7 +20,7 @@ const MEMBERSHIP_LABELS = {
   double_id: 'Double ID',
 };
 
-function MemberSelect({ label, value, onChange, options, hint }) {
+function MemberSelect({ label, value, onChange, options, hint, required = false, allowNone = false, noneLabel = 'No sponsor (root member)' }) {
   return (
     <div>
       <label className="block text-xs font-semibold text-slate-600 mb-1">{label}</label>
@@ -28,9 +28,13 @@ function MemberSelect({ label, value, onChange, options, hint }) {
         className="input w-full"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        required={label.includes('Sponsor')}
+        required={required}
       >
-        <option value="">Select member…</option>
+        {allowNone ? (
+          <option value="">{noneLabel}</option>
+        ) : (
+          <option value="">Select member…</option>
+        )}
         {options.map((u) => (
           <option key={u.id} value={u.id}>
             {u.name} ({u.referral_code}){!u.is_active ? ' — inactive' : ''}
@@ -117,7 +121,7 @@ export default function AdminUsers() {
         email: form.email,
         phone: form.phone || undefined,
         password: form.password,
-        sponsorId: form.sponsorId,
+        sponsorId: form.sponsorId || undefined,
         joinedAt: form.joinedAt,
         paidInstallmentsCount: parseInt(form.paidInstallmentsCount, 10),
         membershipType: form.membershipType,
@@ -397,7 +401,12 @@ export default function AdminUsers() {
                   value={form.sponsorId}
                   onChange={(sponsorId) => setForm((prev) => ({ ...prev, sponsorId }))}
                   options={memberOptions}
-                  hint="Member is placed in the tree directly under the sponsor."
+                  allowNone
+                  hint={
+                    form.sponsorId
+                      ? 'Member is placed in the tree directly under the sponsor.'
+                      : 'No sponsor — member becomes a root node in the network tree.'
+                  }
                 />
 
                 <div>

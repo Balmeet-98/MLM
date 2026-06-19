@@ -88,10 +88,8 @@ const createUser = async (req, res, next) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'name, email, and password are required' });
     }
-    if (!sponsorId) {
-      return res.status(400).json({ error: 'sponsorId is required' });
-    }
 
+    const resolvedSponsorId = sponsorId || null;
     const installmentsPaid =
       paidInstallmentsCount != null
         ? parseInt(paidInstallmentsCount, 10)
@@ -110,34 +108,40 @@ const createUser = async (req, res, next) => {
       }
     }
 
-    const { data: sponsor } = await supabase
-      .from('users')
-      .select('id, is_active, role')
-      .eq('id', sponsorId)
-      .single();
+    let treeParentId = null;
 
-    if (!sponsor) return res.status(404).json({ error: 'Sponsor not found' });
-    if (!sponsor.is_active && sponsor.role !== 'admin') {
-      return res.status(400).json({ error: 'Sponsor must be an active member' });
-    }
+    if (resolvedSponsorId) {
+      const { data: sponsor } = await supabase
+        .from('users')
+        .select('id, is_active, role')
+        .eq('id', resolvedSponsorId)
+        .single();
 
-    const treeParentId = parentUserId || sponsorId;
+      if (!sponsor) return res.status(404).json({ error: 'Sponsor not found' });
+      if (!sponsor.is_active && sponsor.role !== 'admin') {
+        return res.status(400).json({ error: 'Sponsor must be an active member' });
+      }
 
-    const { data: parent } = await supabase
-      .from('users')
-      .select('id, is_active, role')
-      .eq('id', treeParentId)
-      .single();
+      treeParentId = parentUserId || resolvedSponsorId;
 
-    if (!parent) return res.status(404).json({ error: 'Tree parent not found' });
-    if (!parent.is_active && parent.role !== 'admin') {
-      return res.status(400).json({ error: 'Tree parent must be an active member' });
-    }
+      const { data: parent } = await supabase
+        .from('users')
+        .select('id, is_active, role')
+        .eq('id', treeParentId)
+        .single();
 
-    try {
-      await validateTreeParent(null, treeParentId);
-    } catch (e) {
-      return res.status(400).json({ error: e.message });
+      if (!parent) return res.status(404).json({ error: 'Tree parent not found' });
+      if (!parent.is_active && parent.role !== 'admin') {
+        return res.status(400).json({ error: 'Tree parent must be an active member' });
+      }
+
+      try {
+        await validateTreeParent(null, treeParentId);
+      } catch (e) {
+        return res.status(400).json({ error: e.message });
+      }
+    } else if (parentUserId) {
+      return res.status(400).json({ error: 'parentUserId requires a sponsor' });
     }
 
     const newUser = await createMember({
@@ -145,7 +149,7 @@ const createUser = async (req, res, next) => {
       email,
       password,
       phone,
-      sponsorId,
+      sponsorId: resolvedSponsorId,
       parentUserId: treeParentId,
       paymentMode: 'manual',
       markActivationPaid: markActivationPaid !== false,
